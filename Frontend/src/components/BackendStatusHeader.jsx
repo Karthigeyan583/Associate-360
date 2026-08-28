@@ -46,10 +46,13 @@ export default function BackendStatusHeader({
 
   return (
     <header style={{
+      height: '60px',
+      minHeight: '60px',
+      maxHeight: '60px',
       background: 'var(--bg-glass)',
       backdropFilter: 'blur(16px)',
       borderBottom: '1px solid var(--border-subtle)',
-      padding: '10px 28px',
+      padding: '0 28px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -57,13 +60,13 @@ export default function BackendStatusHeader({
       top: 0,
       zIndex: 100,
       gap: '16px',
-      flexWrap: 'wrap'
+      boxSizing: 'border-box'
     }}>
       {/* Left: Backend & Database status */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div className={`pulse-dot ${isOnline ? 'online' : 'offline'}`} />
-          <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: isOnline ? '#34d399' : '#fb7185' }}>
+          <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: isOnline ? 'var(--color-success)' : 'var(--color-danger)' }}>
             {isOnline ? 'REST API Live' : 'Offline'}
           </span>
         </div>
@@ -76,8 +79,8 @@ export default function BackendStatusHeader({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-          <Database size={13} style={{ color: isDbConnected ? '#10b981' : '#f43f5e' }} />
-          <span>PostgreSQL: <strong style={{ color: isDbConnected ? 'var(--text-primary)' : '#f43f5e' }}>Associate_DB</strong></span>
+          <Database size={13} style={{ color: isDbConnected ? 'var(--color-success)' : 'var(--color-danger)' }} />
+          <span>PostgreSQL: <strong style={{ color: isDbConnected ? 'var(--text-primary)' : 'var(--color-danger)' }}>Associate_DB</strong></span>
         </div>
 
         {latency !== null && (
@@ -89,14 +92,14 @@ export default function BackendStatusHeader({
       </div>
 
       {/* Right: Theme Switcher, Notifications, Diagnostics, User Dropdown */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
         
         {/* 2-Mode Theme Switcher (Dark & Light) */}
         <div className="theme-switcher-pill">
           <button
             onClick={() => setTheme('dark')}
             className={`theme-switcher-btn ${theme === 'dark' ? 'active' : ''}`}
-            title="Dark Mode (Toned-down smoky black)"
+            title="Dark Mode"
           >
             <Moon size={13} />
             <span>Dark</span>
@@ -111,17 +114,6 @@ export default function BackendStatusHeader({
             <span>Light</span>
           </button>
         </div>
-
-        {/* NL Ops Toolkit Button */}
-        <button
-          onClick={onOpenToolkit}
-          className="btn btn-secondary btn-sm"
-          style={{ gap: '6px', fontWeight: 600 }}
-          title="Dutch Salary Calculator, KVK, SNA & Working Days Toolkit"
-        >
-          <Landmark size={14} style={{ color: 'var(--accent-primary)' }} />
-          <span>NL Ops Toolkit</span>
-        </button>
 
         {/* Top-Right Notification Center Bell */}
         <div style={{ position: 'relative' }}>
@@ -139,6 +131,7 @@ export default function BackendStatusHeader({
               <span style={{
                 position: 'absolute',
                 top: '-4px',
+
 
                 right: '-4px',
                 background: '#f43f5e',

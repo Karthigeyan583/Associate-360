@@ -44,22 +44,30 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenToolkit }) {
 
   return (
     <aside style={{
-      width: '260px',
+      width: '256px',
       background: 'var(--bg-secondary)',
       borderRight: '1px solid var(--border-subtle)',
       display: 'flex',
       flexDirection: 'column',
-      minHeight: '100vh',
-      flexShrink: 0
+      height: '100vh',
+      position: 'sticky',
+      top: 0,
+      flexShrink: 0,
+      zIndex: 50
     }}>
-      {/* Brand Header */}
+      {/* Brand Header (60px matching sticky status header) */}
       <div style={{
-        padding: '20px 18px',
+        height: '60px',
+        minHeight: '60px',
+        maxHeight: '60px',
+        boxSizing: 'border-box',
+        padding: '0 20px',
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
         borderBottom: '1px solid var(--border-subtle)'
       }}>
+
         <div style={{
           width: '36px',
           height: '36px',
