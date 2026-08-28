@@ -1,0 +1,1649 @@
+BA CONTROL TOWER
+Product & Development Bible
+BA / Consultant • Client • Agreement • Compliance • Alerts • Reporting
+
+--- TABLE START ---
+Purpose A simple operational control system replacing the current Excel BA tracker. It provides one-screen visibility, preserves agreement history, calculates commercial values, tracks compliance, creates date-driven alerts and produces management-ready reports.
+--- TABLE END ---
+
+PurposeA simple operational control system replacing the current Excel BA tracker. It provides one-screen visibility, preserves agreement history, calculates commercial values, tracks compliance, creates date-driven alerts and produces management-ready reports.
+Version: 1.0
+Date: 28 August 2026
+Technology: Python + PostgreSQL + React/Next.js + Flutter
+Design principle: Simple for users; rigorous underneath.
+Primary source: supplied BA tracker template.
+1. Product Definition & Principles
+
+--- TABLE START ---
+Item | Decision
+Product | BA Control Tower
+Primary purpose | Manage BAs/consultants, client assignments, agreements, compliance and operational actions.
+Web | React / Next.js
+Mobile | Flutter
+Backend | Python / Django / Django REST Framework
+Database | PostgreSQL
+Jobs | Celery + Redis
+Documents | Encrypted object storage + metadata in PostgreSQL
+Auth | MFA + role-based access; enterprise SSO-ready
+MVP scope | Operational control system, not a full ATS/payroll/accounting platform.
+--- TABLE END ---
+
+Item
+Decision
+Product
+BA Control Tower
+Primary purpose
+Manage BAs/consultants, client assignments, agreements, compliance and operational actions.
+Web
+React / Next.js
+Mobile
+Flutter
+Backend
+Python / Django / Django REST Framework
+Database
+PostgreSQL
+Jobs
+Celery + Redis
+Documents
+Encrypted object storage + metadata in PostgreSQL
+Auth
+MFA + role-based access; enterprise SSO-ready
+MVP scope
+Operational control system, not a full ATS/payroll/accounting platform.
+1.1 Non-negotiable rules
+One BA record per person; extensions never create duplicate BA records.
+Every agreement is a separate historical record; never overwrite prior agreement dates/rates.
+Dates drive the system: joining, agreement end and compliance/document expiry create actions.
+Dashboard first: users must immediately see what needs attention.
+Calculated values are system-generated, not manually typed.
+Sensitive data and documents are permission-controlled and auditable.
+Excel import/export remains available.
+Notification thresholds and recipients are configurable.
+All critical actions are traceable to a user and timestamp.
+1.2 Intentionally excluded from MVP
+Full ATS/recruitment CRM
+Payroll engine
+Timesheet engine
+Accounting/invoicing engine
+Official VOG/BGC provider replacement
+Complex project management
+2. Dutch-Market Benchmark
+The product should use proven staffing-software patterns while remaining much smaller and easier to operate.
+
+--- TABLE START ---
+Reference | Useful pattern | Adaptation
+Bullhorn | Integrated candidate/client/placement data, onboarding, reporting and automation. | BA + client + agreement + lightweight trigger engine.
+Carerix | Candidate/client workflows, portals, GDPR workflow and permissions. | Structured BA lifecycle, controlled compliance and retention.
+Mysolution | End-to-end staffing flow, placements, contracts, margins and action dashboards. | Use the 'data to action' idea; exclude payroll/timesheets from MVP.
+--- TABLE END ---
+
+Reference
+Useful pattern
+Adaptation
+Bullhorn
+Integrated candidate/client/placement data, onboarding, reporting and automation.
+BA + client + agreement + lightweight trigger engine.
+Carerix
+Candidate/client workflows, portals, GDPR workflow and permissions.
+Structured BA lifecycle, controlled compliance and retention.
+Mysolution
+End-to-end staffing flow, placements, contracts, margins and action dashboards.
+Use the 'data to action' idea; exclude payroll/timesheets from MVP.
+Mysolution's June 2026 market overview lists Bullhorn, Byner, Carerix, Mysolution, OTYS, RecruitNow and Tigris among commonly used Dutch ATS/back-office platforms. cite: turn0search7
+Bullhorn's Dutch product emphasizes integrated ATS/CRM, onboarding, reporting and workflow automation. Its automation pattern—trigger, action, task/email, record update—is directly applicable to this system. cite: turn0search11turn0search15
+Carerix documents GDPR workflow around source/consent, monitoring and anonymisation/renewal and provides controlled client access to candidates. These are useful governance patterns, not features that must all be reproduced. cite: turn0search17turn0search5
+Mysolution positions dashboards around active placements, margins and available professionals and emphasizes fewer clicks and more automation. cite: turn0search6turn0search14
+NEN 4400-1:2023 is the current NEN standard covering requirements for Dutch businesses that make labour available and related labour obligations. The app should support evidence and traceability but must not claim NEN certification by itself. cite: turn0search1turn0search2
+3. Application Structure
+
+--- TABLE START ---
+Dashboard BAs / Consultants Clients Agreements Compliance Reports Notifications Settings
+--- TABLE END ---
+
+Dashboard
+BAs / Consultants
+Clients
+Agreements
+Compliance
+Reports
+Notifications
+Settings
+3.1 Main workflow
+
+--- TABLE START ---
+Login   ↓ Dashboard   ↓ See action-required items   ↓ Open BA / Agreement / Compliance record   ↓ Take action   ↓ System recalculates status   ↓ Notification + audit trail   ↓ Dashboard updates
+--- TABLE END ---
+
+Login
+↓
+Dashboard
+↓
+See action-required items
+↓
+Open BA / Agreement / Compliance record
+↓
+Take action
+↓
+System recalculates status
+↓
+Notification + audit trail
+↓
+Dashboard updates
+3.2 Six business areas
+
+--- TABLE START ---
+Area | Question it answers
+Dashboard | What needs my attention today?
+BAs / Consultants | Who are our people and what is their current status?
+Clients | Who are they working for?
+Agreements | What is current, what ended and what is next?
+Compliance | Are they ready/compliant?
+Reports | What does management need to know?
+--- TABLE END ---
+
+Area
+Question it answers
+Dashboard
+What needs my attention today?
+BAs / Consultants
+Who are our people and what is their current status?
+Clients
+Who are they working for?
+Agreements
+What is current, what ended and what is next?
+Compliance
+Are they ready/compliant?
+Reports
+What does management need to know?
+4. BA Data Dictionary — Direct Mapping from Excel
+
+--- TABLE START ---
+Excel column | System field | Type | Required | Rule
+S.No | display_sequence | Integer | No | Display/export only; never primary key.
+BA Name | full_name | Text | Yes | Canonical person name.
+BA ID | ba_id | Text | Yes | Unique business identifier.
+Employment type | employment_type | Dropdown | Yes | Configurable list.
+Employment status | employment_status | Dropdown | Yes | Active / Inactive / Pending / Archived.
+Source | source | Dropdown | Yes | Configurable, e.g. STAFIDE/QUADZ.
+BA Company Name | ba_company_id | FK | Yes | Company master.
+Passport Number | passport_number | Encrypted | Conditional | Sensitive; restricted.
+BGC & VOG | bgc_vog_status | Dropdown | Yes | Not Required / Pending / Completed / Exception / Expired.
+VISA Type | visa_type | Dropdown | Conditional | Country-specific.
+SNA Compliant | sna_status | Dropdown | Yes | Yes / No / Review.
+Client | client_id | FK | Yes for active | Client master.
+Client Rate | client_rate | Decimal | Yes if billable | Currency + unit required.
+BA Rate | ba_rate | Decimal | Yes if billable | Currency + unit required.
+Difference | rate_difference | Calculated | No | Client Rate - BA Rate.
+Joining Date | joining_date | Date | Yes for active | Drives joining alerts.
+Exit date | exit_date | Date | Conditional | Required on exit.
+Reason | exit_reason | Dropdown/text | Conditional | Required when exit date exists.
+Working from country | working_country | Country | Yes | Country master.
+Company to BA | company_to_ba_id | FK | Yes | Contracting relationship.
+Company to Client | company_to_client_id | FK | Yes | Commercial relationship.
+1st–6th Agreement | agreements | 1-to-many | No | Convert each populated column into a separate agreement record.
+--- TABLE END ---
+
+Excel column
+System field
+Type
+Required
+Rule
+S.No
+display_sequence
+Integer
+No
+Display/export only; never primary key.
+BA Name
+full_name
+Text
+Yes
+Canonical person name.
+BA ID
+ba_id
+Text
+Yes
+Unique business identifier.
+Employment type
+employment_type
+Dropdown
+Yes
+Configurable list.
+Employment status
+employment_status
+Dropdown
+Yes
+Active / Inactive / Pending / Archived.
+Source
+source
+Dropdown
+Yes
+Configurable, e.g. STAFIDE/QUADZ.
+BA Company Name
+ba_company_id
+FK
+Yes
+Company master.
+Passport Number
+passport_number
+Encrypted
+Conditional
+Sensitive; restricted.
+BGC & VOG
+bgc_vog_status
+Dropdown
+Yes
+Not Required / Pending / Completed / Exception / Expired.
+VISA Type
+visa_type
+Dropdown
+Conditional
+Country-specific.
+SNA Compliant
+sna_status
+Dropdown
+Yes
+Yes / No / Review.
+Client
+client_id
+FK
+Yes for active
+Client master.
+Client Rate
+client_rate
+Decimal
+Yes if billable
+Currency + unit required.
+BA Rate
+ba_rate
+Decimal
+Yes if billable
+Currency + unit required.
+Difference
+rate_difference
+Calculated
+No
+Client Rate - BA Rate.
+Joining Date
+joining_date
+Date
+Yes for active
+Drives joining alerts.
+Exit date
+exit_date
+Date
+Conditional
+Required on exit.
+Reason
+exit_reason
+Dropdown/text
+Conditional
+Required when exit date exists.
+Working from country
+working_country
+Country
+Yes
+Country master.
+Company to BA
+company_to_ba_id
+FK
+Yes
+Contracting relationship.
+Company to Client
+company_to_client_id
+FK
+Yes
+Commercial relationship.
+1st–6th Agreement
+agreements
+1-to-many
+No
+Convert each populated column into a separate agreement record.
+4.1 Important change from Excel
+
+--- TABLE START ---
+Do NOT reproduce 1st Agreement / 2nd Agreement / 3rd Agreement as database columns. Store agreements as separate rows linked to the BA. This gives unlimited extensions without changing the database or UI.
+--- TABLE END ---
+
+Do NOT reproduce 1st Agreement / 2nd Agreement / 3rd Agreement as database columns.Store agreements as separate rows linked to the BA. This gives unlimited extensions without changing the database or UI.
+5. Database Blueprint
+
+--- TABLE START ---
+users roles user_roles companies clients bas assignments agreements compliance_records documents notifications notification_rules email_templates email_logs tasks audit_logs system_settings import_batches import_errors
+--- TABLE END ---
+
+users
+roles
+user_roles
+companies
+clients
+bas
+assignments
+agreements
+compliance_records
+documents
+notifications
+notification_rules
+email_templates
+email_logs
+tasks
+audit_logs
+system_settings
+import_batches
+import_errors
+5.1 Relationships
+
+--- TABLE START ---
+Company 1 ─── N BA Company 1 ─── N Client BA 1 ─── N Assignment Client 1 ─── N Assignment Assignment 1 ─── N Agreement BA 1 ─── 1 Compliance Record (MVP) BA 1 ─── N Documents BA 1 ─── N Notifications BA 1 ─── N Audit Events User 1 ─── N Audit Events
+--- TABLE END ---
+
+Company 1 ─── N BA
+Company 1 ─── N Client
+BA 1 ─── N Assignment
+Client 1 ─── N Assignment
+Assignment 1 ─── N Agreement
+BA 1 ─── 1 Compliance Record (MVP)
+BA 1 ─── N Documents
+BA 1 ─── N Notifications
+BA 1 ─── N Audit Events
+User 1 ─── N Audit Events
+5.2 Agreement fields
+
+--- TABLE START ---
+Field | Rule
+agreement_id | UUID; system generated.
+ba_id | Mandatory foreign key.
+agreement_number | Unique human-readable number.
+agreement_sequence | 1,2,3... per BA; no maximum.
+start_date / end_date | Mandatory; start <= end.
+client_rate / ba_rate | Mandatory for billable agreement.
+currency / rate_unit | Mandatory; prevents invalid commercial comparisons.
+status | Upcoming / Active / Completed / Cancelled.
+extension_status | Not Started / Contacted / Waiting / Confirmed / Rejected / Completed.
+document_id | Optional signed agreement.
+created_by / created_at / updated_at | Mandatory audit metadata.
+--- TABLE END ---
+
+Field
+Rule
+agreement_id
+UUID; system generated.
+ba_id
+Mandatory foreign key.
+agreement_number
+Unique human-readable number.
+agreement_sequence
+1,2,3... per BA; no maximum.
+start_date / end_date
+Mandatory; start <= end.
+client_rate / ba_rate
+Mandatory for billable agreement.
+currency / rate_unit
+Mandatory; prevents invalid commercial comparisons.
+status
+Upcoming / Active / Completed / Cancelled.
+extension_status
+Not Started / Contacted / Waiting / Confirmed / Rejected / Completed.
+document_id
+Optional signed agreement.
+created_by / created_at / updated_at
+Mandatory audit metadata.
+6. BA 360 Screen
+
+--- TABLE START ---
+[Search] [Filters] [Add BA] [Import Excel] HEADER Name | BA ID | Status | Client | Current Agreement End | Readiness EMPLOYMENT Employment Type | Source | BA Company | Working Country | Joining | Exit | Reason CLIENT / COMMERCIAL Client | Company-to-BA | Company-to-Client Client Rate | BA Rate | Difference | Margin % COMPLIANCE BGC | VOG | Visa | Visa Expiry | SNA | Overall Status AGREEMENT HISTORY Agreement # | From | To | Client Rate | BA Rate | Status | Extension DOCUMENTS Type | Status | Expiry | Verified | Access ACTIVITY Who | Action | Date | Note
+--- TABLE END ---
+
+[Search] [Filters] [Add BA] [Import Excel]
+HEADER
+Name | BA ID | Status | Client | Current Agreement End | Readiness
+EMPLOYMENT
+Employment Type | Source | BA Company | Working Country | Joining | Exit | Reason
+CLIENT / COMMERCIAL
+Client | Company-to-BA | Company-to-Client
+Client Rate | BA Rate | Difference | Margin %
+COMPLIANCE
+BGC | VOG | Visa | Visa Expiry | SNA | Overall Status
+AGREEMENT HISTORY
+Agreement # | From | To | Client Rate | BA Rate | Status | Extension
+DOCUMENTS
+Type | Status | Expiry | Verified | Access
+ACTIVITY
+Who | Action | Date | Note
+6.1 Readiness
+
+--- TABLE START ---
+Status | Meaning
+READY | No blocking action; required operational/compliance conditions satisfied.
+ACTION REQUIRED | BA can remain operational but a follow-up is needed.
+NOT READY | Blocking item prevents normal deployment/continuation.
+INACTIVE | No current assignment; retained for history subject to retention policy.
+--- TABLE END ---
+
+Status
+Meaning
+READY
+No blocking action; required operational/compliance conditions satisfied.
+ACTION REQUIRED
+BA can remain operational but a follow-up is needed.
+NOT READY
+Blocking item prevents normal deployment/continuation.
+INACTIVE
+No current assignment; retained for history subject to retention policy.
+6.2 Search/filter
+Name
+BA ID
+Client
+BA Company
+Agreement number
+Employment status
+Employment type
+Source
+Working country
+Agreement expiry bucket
+Compliance status
+Owner
+7. Core Workflows
+7.1 Create BA
+
+--- TABLE START ---
+Add BA  ↓ Enter mandatory fields  ↓ Check BA ID uniqueness  ↓ Select company + client  ↓ Enter joining date  ↓ Create compliance record  ↓ Create first agreement if applicable  ↓ Validate  ↓ Save  ↓ Calculate Difference, Margin, Readiness  ↓ Create audit event  ↓ Schedule applicable notifications
+--- TABLE END ---
+
+Add BA
+↓
+Enter mandatory fields
+↓
+Check BA ID uniqueness
+↓
+Select company + client
+↓
+Enter joining date
+↓
+Create compliance record
+↓
+Create first agreement if applicable
+↓
+Validate
+↓
+Save
+↓
+Calculate Difference, Margin, Readiness
+↓
+Create audit event
+↓
+Schedule applicable notifications
+7.2 Update BA
+
+--- TABLE START ---
+Open BA → Edit → Validate → Save → Recalculate derived values → Create audit event → Recalculate alerts → Refresh dashboard
+--- TABLE END ---
+
+Open BA → Edit → Validate → Save
+→ Recalculate derived values
+→ Create audit event
+→ Recalculate alerts
+→ Refresh dashboard
+7.3 Agreement / Extension
+
+--- TABLE START ---
+Agreement approaching end  ↓ Alert owner  ↓ Extension status = Contacted  ↓ Waiting / Negotiation  ↓ Confirmed  ↓ Create NEW agreement  ↓ Previous agreement = Completed  ↓ New agreement = Active  ↓ Recalculate rates/dates/status  ↓ Send confirmation
+--- TABLE END ---
+
+Agreement approaching end
+↓
+Alert owner
+↓
+Extension status = Contacted
+↓
+Waiting / Negotiation
+↓
+Confirmed
+↓
+Create NEW agreement
+↓
+Previous agreement = Completed
+↓
+New agreement = Active
+↓
+Recalculate rates/dates/status
+↓
+Send confirmation
+7.4 Exit
+
+--- TABLE START ---
+Record Exit Date + Reason  ↓ Validate Exit Date  ↓ BA = Inactive  ↓ Current agreement = Completed where applicable  ↓ Stop active agreement alerts  ↓ Start retention review clock  ↓ Keep historical record
+--- TABLE END ---
+
+Record Exit Date + Reason
+↓
+Validate Exit Date
+↓
+BA = Inactive
+↓
+Current agreement = Completed where applicable
+↓
+Stop active agreement alerts
+↓
+Start retention review clock
+↓
+Keep historical record
+7.5 Joining
+
+--- TABLE START ---
+Joining date exists  ↓ Daily check  ↓ 30 / 14 / 7 / 1 day thresholds  ↓ Task + notification + email according to settings  ↓ Log delivery  ↓ Do not duplicate same threshold
+--- TABLE END ---
+
+Joining date exists
+↓
+Daily check
+↓
+30 / 14 / 7 / 1 day thresholds
+↓
+Task + notification + email according to settings
+↓
+Log delivery
+↓
+Do not duplicate same threshold
+8. Compliance Workflow
+
+--- TABLE START ---
+Area | Statuses | Typical effect
+BGC | Not Required / Pending / In Progress / Completed / Exception / Expired | Blocking rule configurable.
+VOG | Not Required / Pending / Received / Verified / Exception / Expired | Upload does not equal verification.
+Visa | Not Required / Valid / Expiring / Expired / Review | Expiry creates action.
+SNA | Yes / No / Review | No/Review creates compliance action.
+--- TABLE END ---
+
+Area
+Statuses
+Typical effect
+BGC
+Not Required / Pending / In Progress / Completed / Exception / Expired
+Blocking rule configurable.
+VOG
+Not Required / Pending / Received / Verified / Exception / Expired
+Upload does not equal verification.
+Visa
+Not Required / Valid / Expiring / Expired / Review
+Expiry creates action.
+SNA
+Yes / No / Review
+No/Review creates compliance action.
+8.1 Daily compliance engine
+
+--- TABLE START ---
+For every Active BA:   Determine required compliance   Check current status   Check expiry dates   If missing/expired → NOT READY or ACTION REQUIRED   If nearing expiry → ACTION REQUIRED   Create alert only once per threshold   Notify configured owner(s)
+--- TABLE END ---
+
+For every Active BA:
+Determine required compliance
+Check current status
+Check expiry dates
+If missing/expired → NOT READY or ACTION REQUIRED
+If nearing expiry → ACTION REQUIRED
+Create alert only once per threshold
+Notify configured owner(s)
+8.2 VOG control
+Track the workflow; do not replace the official issuing/verification process.
+Uploaded document must remain Received/Pending until an authorised verifier marks it Verified.
+Store verifier and verification date.
+Restrict access to the underlying document.
+Do not store unnecessary screening detail.
+8.3 BGC control
+Track status and outcome with minimum necessary information.
+Provider integration can be added later using provider reference/status.
+Exceptions require reason and owner.
+9. Notification & Email Bible
+
+--- TABLE START ---
+Event | Threshold | Recipient | Priority | Action
+Agreement expiry | 90d | Owner | Medium | Task + email
+Agreement expiry | 60d | Owner | Medium | Task + email
+Agreement expiry | 30d | Owner + manager | High | Task + email
+Agreement expiry | 14d | Owner + manager | High | Escalate
+Agreement expiry | 7d | Owner + management | Critical | Escalate
+Joining | 30d | Owner | Low | Dashboard reminder
+Joining | 14d | Owner | Medium | Task + email
+Joining | 7d | Owner | High | Task + email
+Joining | 1d | Owner | High | Email + push
+Visa expiry | 90d | Compliance | Medium | Alert
+Visa expiry | 60d | Compliance | High | Alert
+Visa expiry | 30d | Compliance + manager | Critical | Escalate
+BGC/VOG pending | Configurable | Compliance/owner | Medium | Reminder
+SNA No/Review | Immediate | Compliance + manager | Critical | Alert
+--- TABLE END ---
+
+Event
+Threshold
+Recipient
+Priority
+Action
+Agreement expiry
+90d
+Owner
+Medium
+Task + email
+Agreement expiry
+60d
+Owner
+Medium
+Task + email
+Agreement expiry
+30d
+Owner + manager
+High
+Task + email
+Agreement expiry
+14d
+Owner + manager
+High
+Escalate
+Agreement expiry
+7d
+Owner + management
+Critical
+Escalate
+Joining
+30d
+Owner
+Low
+Dashboard reminder
+Joining
+14d
+Owner
+Medium
+Task + email
+Joining
+7d
+Owner
+High
+Task + email
+Joining
+1d
+Owner
+High
+Email + push
+Visa expiry
+90d
+Compliance
+Medium
+Alert
+Visa expiry
+60d
+Compliance
+High
+Alert
+Visa expiry
+30d
+Compliance + manager
+Critical
+Escalate
+BGC/VOG pending
+Configurable
+Compliance/owner
+Medium
+Reminder
+SNA No/Review
+Immediate
+Compliance + manager
+Critical
+Alert
+9.1 Trigger engine
+
+--- TABLE START ---
+Trigger  ↓ Condition  ↓ Threshold matched  ↓ Rule enabled?  ↓ Resolve recipient  ↓ Create notification  ↓ Send email/push  ↓ Log result  ↓ Mark threshold processed
+--- TABLE END ---
+
+Trigger
+↓
+Condition
+↓
+Threshold matched
+↓
+Rule enabled?
+↓
+Resolve recipient
+↓
+Create notification
+↓
+Send email/push
+↓
+Log result
+↓
+Mark threshold processed
+9.2 Anti-spam rules
+Same threshold must not send twice unless manually resent.
+Resolved conditions close outstanding alerts.
+Changing agreement dates recalculates future thresholds.
+Optional daily digest can group non-critical alerts.
+Critical exceptions can bypass digest.
+Email status: queued / sent / failed; provider delivery status when available.
+9.3 Template variables
+Supported variables: {{ba_name}}, {{ba_id}}, {{client_name}}, {{agreement_number}}, {{agreement_end_date}}, {{days_remaining}}, {{joining_date}}, {{owner_name}}.
+10. Business Logic & Calculations
+10.1 Agreement status
+
+--- TABLE START ---
+IF cancelled:     CANCELLED ELSE IF today < start_date:     UPCOMING ELSE IF start_date <= today <= end_date:     ACTIVE ELSE:     COMPLETED
+--- TABLE END ---
+
+IF cancelled:
+CANCELLED
+ELSE IF today < start_date:
+UPCOMING
+ELSE IF start_date <= today <= end_date:
+ACTIVE
+ELSE:
+COMPLETED
+10.2 Days remaining
+
+--- TABLE START ---
+days_remaining = end_date - today if days_remaining < 0 → "Expired" else → number of days remaining
+--- TABLE END ---
+
+days_remaining = end_date - today
+if days_remaining < 0 → "Expired"
+else → number of days remaining
+10.3 Commercial calculations
+
+--- TABLE START ---
+Difference = Client Rate - BA Rate Margin % = ((Client Rate - BA Rate) / Client Rate) × 100 Only calculate Margin % when Client Rate > 0. Store currency and rate unit with every rate.
+--- TABLE END ---
+
+Difference = Client Rate - BA Rate
+Margin % = ((Client Rate - BA Rate) / Client Rate) × 100
+Only calculate Margin % when Client Rate > 0.
+Store currency and rate unit with every rate.
+10.4 Validation rules
+
+--- TABLE START ---
+Condition | System behaviour
+Duplicate BA ID | Block and show existing record.
+Agreement end < start | Block.
+Negative rate | Block unless explicitly configured.
+Missing rate for billable agreement | Block or exception according to configuration.
+Exit date < joining date | Block.
+Active BA with no active agreement | Warning/Not Ready according to model.
+VOG Verified without verifier | Block.
+Invalid visa dates | Block.
+Unparseable Excel date | Import error; row not committed.
+--- TABLE END ---
+
+Condition
+System behaviour
+Duplicate BA ID
+Block and show existing record.
+Agreement end < start
+Block.
+Negative rate
+Block unless explicitly configured.
+Missing rate for billable agreement
+Block or exception according to configuration.
+Exit date < joining date
+Block.
+Active BA with no active agreement
+Warning/Not Ready according to model.
+VOG Verified without verifier
+Block.
+Invalid visa dates
+Block.
+Unparseable Excel date
+Import error; row not committed.
+10.5 Overall status priority
+
+--- TABLE START ---
+CRITICAL / NOT READY       ↓ HIGH / ACTION REQUIRED       ↓ MEDIUM / ACTION REQUIRED       ↓ READY       ↓ INACTIVE
+--- TABLE END ---
+
+CRITICAL / NOT READY
+↓
+HIGH / ACTION REQUIRED
+↓
+MEDIUM / ACTION REQUIRED
+↓
+READY
+↓
+INACTIVE
+11. Dashboard & Charts
+11.1 KPI cards
+
+--- TABLE START ---
+KPI | Definition | Drill-down
+Active BAs | Distinct BAs currently Active. | Active BA list.
+Joining this month | Joining date inside current month. | Joining report.
+Expiry 30d | Active agreements ending within 30 days. | Expiry report.
+Expiry 60d | Active agreements ending in 31–60 days. | Expiry report.
+Expiry 90d | Active agreements ending in 61–90 days. | Expiry report.
+Compliance issues | BAs with blocking/exception compliance condition. | Compliance report.
+Extensions pending | Agreements inside extension window with unresolved extension status. | Extension report.
+Inactive this month | BAs with exit date in current month. | Exit report.
+--- TABLE END ---
+
+KPI
+Definition
+Drill-down
+Active BAs
+Distinct BAs currently Active.
+Active BA list.
+Joining this month
+Joining date inside current month.
+Joining report.
+Expiry 30d
+Active agreements ending within 30 days.
+Expiry report.
+Expiry 60d
+Active agreements ending in 31–60 days.
+Expiry report.
+Expiry 90d
+Active agreements ending in 61–90 days.
+Expiry report.
+Compliance issues
+BAs with blocking/exception compliance condition.
+Compliance report.
+Extensions pending
+Agreements inside extension window with unresolved extension status.
+Extension report.
+Inactive this month
+BAs with exit date in current month.
+Exit report.
+11.2 Required reporting charts
+
+--- TABLE START ---
+Chart | Type | Purpose | Default range
+Active BAs by Client | Horizontal bar | Client concentration. | Current
+Agreement Expiry by Month | Column/line | Future contract risk. | Next 12 months
+BA Status Mix | Donut/pie | Active/inactive/pending mix. | Current
+Compliance Status | Stacked bar | Ready/action/not ready. | Current
+Joining vs Exit | Line | Monthly movement of BA population. | 12 months
+Revenue vs BA Cost | Line | Commercial trend if rates are normalized. | 12 months
+Margin by Client | Horizontal bar | Client ranking by spread/margin. | Current
+Extension Outcomes | Bar | Confirmed/rejected/pending. | 6 months
+--- TABLE END ---
+
+Chart
+Type
+Purpose
+Default range
+Active BAs by Client
+Horizontal bar
+Client concentration.
+Current
+Agreement Expiry by Month
+Column/line
+Future contract risk.
+Next 12 months
+BA Status Mix
+Donut/pie
+Active/inactive/pending mix.
+Current
+Compliance Status
+Stacked bar
+Ready/action/not ready.
+Current
+Joining vs Exit
+Line
+Monthly movement of BA population.
+12 months
+Revenue vs BA Cost
+Line
+Commercial trend if rates are normalized.
+12 months
+Margin by Client
+Horizontal bar
+Client ranking by spread/margin.
+Current
+Extension Outcomes
+Bar
+Confirmed/rejected/pending.
+6 months
+Every chart and KPI must be clickable. The user must be able to reach the exact underlying rows behind the number.
+12. Reports Catalogue
+
+--- TABLE START ---
+Report | Core columns | Filters
+BA Master | BA ID, Name, Status, Source, BA Company, Client, Country, Joining, Exit | All BA filters
+Active BA | BA, Client, Agreement End, Rates, Margin, Compliance | Client, owner, country
+Agreement Expiry | BA, Client, Agreement #, End, Days Remaining, Extension | 7/30/60/90/custom
+Extension Tracker | BA, Client, End, Owner, Extension Status, Last Action | Status, owner, client
+Compliance | BA, BGC, VOG, Visa, SNA, Overall | Status/type/client
+Joining | BA, Client, Joining, Days to Join, Readiness | Date range/client
+Exit | BA, Client, Exit, Reason, Last Agreement | Date/reason
+Commercial | BA, Client, Client Rate, BA Rate, Difference, Margin | Client/source/country
+Agreement History | BA, Agreement #, From, To, Rates, Status | BA/client/date
+Audit | User, action, entity, field, old/new value, timestamp | User/date/entity/action
+--- TABLE END ---
+
+Report
+Core columns
+Filters
+BA Master
+BA ID, Name, Status, Source, BA Company, Client, Country, Joining, Exit
+All BA filters
+Active BA
+BA, Client, Agreement End, Rates, Margin, Compliance
+Client, owner, country
+Agreement Expiry
+BA, Client, Agreement #, End, Days Remaining, Extension
+7/30/60/90/custom
+Extension Tracker
+BA, Client, End, Owner, Extension Status, Last Action
+Status, owner, client
+Compliance
+BA, BGC, VOG, Visa, SNA, Overall
+Status/type/client
+Joining
+BA, Client, Joining, Days to Join, Readiness
+Date range/client
+Exit
+BA, Client, Exit, Reason, Last Agreement
+Date/reason
+Commercial
+BA, Client, Client Rate, BA Rate, Difference, Margin
+Client/source/country
+Agreement History
+BA, Agreement #, From, To, Rates, Status
+BA/client/date
+Audit
+User, action, entity, field, old/new value, timestamp
+User/date/entity/action
+12.1 Export rules
+Excel/CSV export on all major reports.
+Export follows role permissions.
+Restricted fields such as passport number are excluded unless explicitly authorised.
+Large exports should be asynchronous and logged.
+Every export of sensitive data is auditable.
+13. Excel Migration / Import
+
+--- TABLE START ---
+Upload Excel  ↓ Detect headers  ↓ Map columns  ↓ Validate  ↓ Preview  ↓ Show errors/warnings  ↓ Confirm  ↓ Create/update records  ↓ Import summary  ↓ Audit batch
+--- TABLE END ---
+
+Upload Excel
+↓
+Detect headers
+↓
+Map columns
+↓
+Validate
+↓
+Preview
+↓
+Show errors/warnings
+↓
+Confirm
+↓
+Create/update records
+↓
+Import summary
+↓
+Audit batch
+13.1 Matching
+Primary key: BA ID.
+Secondary warning match: normalized BA name + BA company when BA ID is absent.
+Never silently merge people.
+Each populated 1st–6th Agreement becomes an Agreement record.
+Blank agreement columns are ignored.
+Original Excel row number is stored for error tracing.
+13.2 Example result
+
+--- TABLE START ---
+Rows: 248 Created: 200 Updated: 40 Skipped: 3 Errors: 5 [Download Error File]
+--- TABLE END ---
+
+Rows: 248
+Created: 200
+Updated: 40
+Skipped: 3
+Errors: 5
+[Download Error File]
+14. Roles & Permissions
+
+--- TABLE START ---
+Role | BA | Client | Agreement | Compliance | Rates | Reports | Settings
+Admin | Full | Full | Full | Full | Full | Full | Full
+Management | View/Edit | View/Edit | View/Edit | View | View | Full | Limited
+Operations | View/Edit | View | View/Edit | View/Edit | Limited | Operational | No
+Account Manager | Assigned | Assigned | Assigned | View | Assigned | Assigned | No
+Compliance | Limited | View | View | Full | No | Compliance | No
+Finance | Limited | View | View | No | Full | Commercial | No
+Read Only | View | View | View | View | No | View | No
+--- TABLE END ---
+
+Role
+BA
+Client
+Agreement
+Compliance
+Rates
+Reports
+Settings
+Admin
+Full
+Full
+Full
+Full
+Full
+Full
+Full
+Management
+View/Edit
+View/Edit
+View/Edit
+View
+View
+Full
+Limited
+Operations
+View/Edit
+View
+View/Edit
+View/Edit
+Limited
+Operational
+No
+Account Manager
+Assigned
+Assigned
+Assigned
+View
+Assigned
+Assigned
+No
+Compliance
+Limited
+View
+View
+Full
+No
+Compliance
+No
+Finance
+Limited
+View
+View
+No
+Full
+Commercial
+No
+Read Only
+View
+View
+View
+View
+No
+View
+No
+14.1 Permission rules
+Default deny; grant only required access.
+Account Managers may be restricted to assigned clients/BAs.
+Passport, BGC/VOG documents and commercial rates can be field/document restricted.
+Document download is separately permissioned from record view.
+Export is a separate permission.
+Role/permission changes require audit.
+15. Security, Privacy & GDPR
+15.1 Security baseline
+HTTPS/TLS everywhere.
+Encryption at rest for database backups and document storage.
+MFA for privileged users; preferably all users.
+OIDC/OAuth2-ready SSO.
+Role/object/field-level authorization.
+Secure HttpOnly SameSite cookies.
+CSRF protection and server-side validation.
+ORM/parameterized queries.
+XSS-safe rendering.
+Rate limiting on authentication and sensitive APIs.
+File upload type/size/content validation and malware scanning.
+Secrets outside source control.
+Separate dev/staging/prod.
+Dependency vulnerability scanning.
+Central error/security monitoring.
+Encrypted backups with tested restore.
+Tamper-evident audit logs.
+15.2 GDPR
+The Dutch Autoriteit Persoonsgegevens states that personal data must not be kept longer than necessary and that organisations should determine, document and justify retention periods. Exact retention periods must therefore be configured from the organisation's legal/privacy policy rather than invented in code. cite: turn0search0
+Record source/purpose where required.
+Maintain a retention matrix by data category.
+Create review tasks before retention expiry.
+Support data export, correction and deletion/anonymisation where legally appropriate.
+Keep data longer only when another legal/business requirement justifies it.
+Minimise BGC/VOG detail.
+Restrict sensitive documents.
+Audit access and administrative changes.
+15.3 Restricted document access
+
+--- TABLE START ---
+Request document  ↓ Permission check  ↓ Sensitive?  ↓ yes Elevated permission + audit  ↓ Short-lived access token  ↓ View/download  ↓ Log access
+--- TABLE END ---
+
+Request document
+↓
+Permission check
+↓
+Sensitive?
+↓ yes
+Elevated permission + audit
+↓
+Short-lived access token
+↓
+View/download
+↓
+Log access
+15.4 Retention workflow
+
+--- TABLE START ---
+Inactive / purpose ended  ↓ Retention clock  ↓ Review reminder  ↓ Authorised decision:   RETAIN + reason   ANONYMISE   DELETE  ↓ Audit event  ↓ Apply document/data action
+--- TABLE END ---
+
+Inactive / purpose ended
+↓
+Retention clock
+↓
+Review reminder
+↓
+Authorised decision:
+RETAIN + reason
+ANONYMISE
+DELETE
+↓
+Audit event
+↓
+Apply document/data action
+16. Audit Trail
+
+--- TABLE START ---
+Event | Must capture
+BA change | User, time, field, old value, new value
+Agreement change | User, time, field, old/new value, reason where applicable
+Rate change | User, time, old/new rate, currency/unit
+Compliance change | User, time, old/new status, verifier
+VOG verification | Verifier, date, status, document reference
+Document access | User, time, document, action, result where policy requires
+Import | User, time, file, row counts, result
+Export | User, time, report, filters, sensitivity level
+Permission change | Actor, target user/role, old/new permission
+Retention action | Actor, record, action, reason
+Notification | Rule, recipient, send status, timestamp
+--- TABLE END ---
+
+Event
+Must capture
+BA change
+User, time, field, old value, new value
+Agreement change
+User, time, field, old/new value, reason where applicable
+Rate change
+User, time, old/new rate, currency/unit
+Compliance change
+User, time, old/new status, verifier
+VOG verification
+Verifier, date, status, document reference
+Document access
+User, time, document, action, result where policy requires
+Import
+User, time, file, row counts, result
+Export
+User, time, report, filters, sensitivity level
+Permission change
+Actor, target user/role, old/new permission
+Retention action
+Actor, record, action, reason
+Notification
+Rule, recipient, send status, timestamp
+17. Flutter Mobile Scope
+
+--- TABLE START ---
+Screen | MVP functions
+Home | KPIs, urgent alerts, joining, expiry, compliance.
+BA Search | Search by name/BA ID/client.
+BA 360 | Essential BA, client, agreement, compliance, alerts.
+Agreement | View dates/rates/status; extension status if permitted.
+Compliance | View status; upload document if permitted.
+Notifications | Read, acknowledge, resolve.
+Quick Actions | Start extension, mark contacted, add note, update status.
+--- TABLE END ---
+
+Screen
+MVP functions
+Home
+KPIs, urgent alerts, joining, expiry, compliance.
+BA Search
+Search by name/BA ID/client.
+BA 360
+Essential BA, client, agreement, compliance, alerts.
+Agreement
+View dates/rates/status; extension status if permitted.
+Compliance
+View status; upload document if permitted.
+Notifications
+Read, acknowledge, resolve.
+Quick Actions
+Start extension, mark contacted, add note, update status.
+Mobile should focus on action and visibility. Do not reproduce every web administration form.
+18. Backend/API Blueprint
+
+--- TABLE START ---
+Area | Representative endpoint
+Auth | /auth/login, /auth/refresh, /auth/logout, /auth/mfa
+BAs | /bas, /bas/{id}, /bas/{id}/activity, /bas/{id}/documents
+Clients | /clients, /clients/{id}, /clients/{id}/bas
+Agreements | /agreements, /agreements/{id}, /agreements/{id}/extension
+Compliance | /bas/{id}/compliance
+Notifications | /notifications, /notifications/{id}/read
+Reports | /reports/active-bas, /reports/expiry, /reports/compliance, /reports/commercial
+Imports | /imports, /imports/{id}/preview, /imports/{id}/commit
+Settings | /settings/notification-rules, /settings/email-templates
+Audit | /audit (restricted)
+--- TABLE END ---
+
+Area
+Representative endpoint
+Auth
+/auth/login, /auth/refresh, /auth/logout, /auth/mfa
+BAs
+/bas, /bas/{id}, /bas/{id}/activity, /bas/{id}/documents
+Clients
+/clients, /clients/{id}, /clients/{id}/bas
+Agreements
+/agreements, /agreements/{id}, /agreements/{id}/extension
+Compliance
+/bas/{id}/compliance
+Notifications
+/notifications, /notifications/{id}/read
+Reports
+/reports/active-bas, /reports/expiry, /reports/compliance, /reports/commercial
+Imports
+/imports, /imports/{id}/preview, /imports/{id}/commit
+Settings
+/settings/notification-rules, /settings/email-templates
+Audit
+/audit (restricted)
+REST/JSON for MVP.
+OpenAPI documentation.
+Pagination, server-side filtering and sorting.
+Consistent error schema.
+Server-side authorization; UI hiding is not security.
+Rate limits for login, export and sensitive endpoints.
+19. Non-Functional Requirements
+
+--- TABLE START ---
+Area | Requirement
+Performance | Normal dashboard/list calls should target ~2 seconds under expected load.
+Availability | MVP production target ≥99.5%, subject to infrastructure.
+Scale | Design for at least 100,000 person/BA records without schema redesign.
+Backup | Automated daily backup minimum; PITR preferred for PostgreSQL.
+Recovery | Define RPO/RTO before production and test restore.
+Monitoring | Errors, job failures, latency, auth events and infrastructure monitored.
+Accessibility | Keyboard navigation, readable contrast, text + icon status; target WCAG 2.1 AA where practical.
+Localization | English MVP; date/currency/timezone configurable.
+Audit | Critical changes traceable to user/time/action.
+Security | No secrets in source code; production credentials managed securely.
+--- TABLE END ---
+
+Area
+Requirement
+Performance
+Normal dashboard/list calls should target ~2 seconds under expected load.
+Availability
+MVP production target ≥99.5%, subject to infrastructure.
+Scale
+Design for at least 100,000 person/BA records without schema redesign.
+Backup
+Automated daily backup minimum; PITR preferred for PostgreSQL.
+Recovery
+Define RPO/RTO before production and test restore.
+Monitoring
+Errors, job failures, latency, auth events and infrastructure monitored.
+Accessibility
+Keyboard navigation, readable contrast, text + icon status; target WCAG 2.1 AA where practical.
+Localization
+English MVP; date/currency/timezone configurable.
+Audit
+Critical changes traceable to user/time/action.
+Security
+No secrets in source code; production credentials managed securely.
+20. QA & Acceptance Criteria
+Create BA with unique BA ID → searchable record.
+Duplicate BA ID → blocked with existing record link.
+Agreement end before start → blocked.
+Active BA + agreement → readiness calculated.
+Missing blocking compliance → NOT READY/ACTION REQUIRED.
+Client rate change → Difference and Margin recalculate.
+90-day expiry threshold → alert created once.
+Same threshold checked next day → no duplicate.
+Agreement date extended → old future alerts recalculated.
+Second agreement created → first remains historical.
+Exit recorded → BA becomes inactive and active alerts stop.
+VOG upload → not automatically verified.
+Unauthorized sensitive-document access → denied and logged.
+Restricted export → sensitive fields excluded.
+Excel import with invalid rows → valid rows previewed; invalid rows reported.
+Retention action → audit event created.
+20.1 Definition of Done
+All P0 workflows pass end-to-end testing.
+Critical calculations have automated tests.
+Role/permission negative tests pass.
+Audit events exist for critical actions.
+Notification engine is idempotent.
+Import/export validation and security tests pass.
+Backup restore tested.
+Production secrets absent from source control.
+Security review completed before launch.
+21. Development Roadmap
+
+--- TABLE START ---
+Phase | Scope | Outcome
+0 Discovery | Confirm fields, owners, retention, exact current Excel values and policies. | Signed-off specification.
+1 Foundation | Auth, roles, database, BA, client, agreement, audit. | Stable core.
+2 Control Tower | BA 360, search, filters, dashboard, agreement history. | Excel replacement.
+3 Compliance | BGC/VOG/Visa/SNA, documents, readiness. | Compliance visibility.
+4 Automation | Expiry/joining triggers, emails, notifications, tasks. | Less manual follow-up.
+5 Reporting | Charts, reports, exports. | Management insight.
+6 Mobile | Flutter dashboard, lookup, notifications, quick actions. | Mobile operations.
+7 Hardening | Security, GDPR, performance, backup/restore. | Production readiness.
+8 Future | AI, e-sign, M365, BGC/VOG providers, payroll/accounting integrations. | Expansion.
+--- TABLE END ---
+
+Phase
+Scope
+Outcome
+0 Discovery
+Confirm fields, owners, retention, exact current Excel values and policies.
+Signed-off specification.
+1 Foundation
+Auth, roles, database, BA, client, agreement, audit.
+Stable core.
+2 Control Tower
+BA 360, search, filters, dashboard, agreement history.
+Excel replacement.
+3 Compliance
+BGC/VOG/Visa/SNA, documents, readiness.
+Compliance visibility.
+4 Automation
+Expiry/joining triggers, emails, notifications, tasks.
+Less manual follow-up.
+5 Reporting
+Charts, reports, exports.
+Management insight.
+6 Mobile
+Flutter dashboard, lookup, notifications, quick actions.
+Mobile operations.
+7 Hardening
+Security, GDPR, performance, backup/restore.
+Production readiness.
+8 Future
+AI, e-sign, M365, BGC/VOG providers, payroll/accounting integrations.
+Expansion.
+21.1 Build sequence
+
+--- TABLE START ---
+Database model  ↓ Django backend/API  ↓ BA list + BA 360  ↓ Clients  ↓ Agreements + history  ↓ Dashboard  ↓ Compliance + documents  ↓ Notification engine  ↓ Reports + import/export  ↓ Security hardening  ↓ Flutter mobile
+--- TABLE END ---
+
+Database model
+↓
+Django backend/API
+↓
+BA list + BA 360
+↓
+Clients
+↓
+Agreements + history
+↓
+Dashboard
+↓
+Compliance + documents
+↓
+Notification engine
+↓
+Reports + import/export
+↓
+Security hardening
+↓
+Flutter mobile
+22. UI/UX Rules
+One primary action per screen.
+Use consistent status labels: Ready, Action Required, Not Ready, Active, Inactive, Pending, Completed, Exception.
+Never rely on colour alone; include text/icon.
+Show agreement end date and days remaining together.
+Every alert links directly to the record/action that resolves it.
+Use sticky filters/search on long BA lists.
+Remember user filter/sort preferences.
+Show last updated timestamp where freshness matters.
+Do not create charts without a decision/use case.
+Confirm destructive or high-risk actions.
+Use inline validation.
+Keep the dashboard action-first, not chart-first.
+23. Future Integrations
+
+--- TABLE START ---
+Integration | Purpose | MVP
+Microsoft 365 / Outlook | Email/calendar integration and activity logging. | No
+Google Workspace | Email/calendar integration. | No
+E-signature | Contract signing. | No
+BGC provider | Status/result synchronization. | No
+VOG-related official workflow | Supported workflow/API where legally and technically appropriate. | No
+AFAS / payroll | Employee/contract synchronization. | No
+Accounting | Billing/invoice integration. | No
+AI | Natural-language search, summaries, anomaly detection. | No
+BI | Advanced analytics. | Optional
+--- TABLE END ---
+
+Integration
+Purpose
+MVP
+Microsoft 365 / Outlook
+Email/calendar integration and activity logging.
+No
+Google Workspace
+Email/calendar integration.
+No
+E-signature
+Contract signing.
+No
+BGC provider
+Status/result synchronization.
+No
+VOG-related official workflow
+Supported workflow/API where legally and technically appropriate.
+No
+AFAS / payroll
+Employee/contract synchronization.
+No
+Accounting
+Billing/invoice integration.
+No
+AI
+Natural-language search, summaries, anomaly detection.
+No
+BI
+Advanced analytics.
+Optional
+Use stable internal IDs and audit/event patterns so future integrations do not require redesigning the BA model.
+24. Master Business Rules Checklist
+
+--- TABLE START ---
+# | Rule
+1 | BA ID is unique.
+2 | Active BA has employment status.
+3 | Active assignment identifies client.
+4 | Billable agreement has client rate, BA rate, currency and rate unit.
+5 | Difference is calculated.
+6 | Margin % is calculated.
+7 | Agreement start <= end.
+8 | Agreement history is append-oriented.
+9 | Only current agreement is Active unless overlap is explicitly allowed.
+10 | Joining date drives reminders.
+11 | Agreement end date drives expiry reminders.
+12 | Visa expiry drives reminders where applicable.
+13 | BGC/VOG status is separate from the document.
+14 | Document upload does not equal verification.
+15 | Restricted compliance documents require appropriate permission.
+16 | SNA No/Review creates configurable action.
+17 | Exit date causes inactive status unless authorised override.
+18 | Historical BAs remain available subject to retention policy.
+19 | Resolved alerts stop sending.
+20 | Threshold notifications are idempotent.
+21 | Email failures are logged.
+22 | Critical changes are audited.
+23 | Imports are previewed before commit.
+24 | Exports follow permissions.
+25 | Retention is policy-driven.
+26 | Settings are configurable by authorised administrators.
+27 | Critical workflows have automated tests.
+--- TABLE END ---
+
+#
+Rule
+1
+BA ID is unique.
+2
+Active BA has employment status.
+3
+Active assignment identifies client.
+4
+Billable agreement has client rate, BA rate, currency and rate unit.
+5
+Difference is calculated.
+6
+Margin % is calculated.
+7
+Agreement start <= end.
+8
+Agreement history is append-oriented.
+9
+Only current agreement is Active unless overlap is explicitly allowed.
+10
+Joining date drives reminders.
+11
+Agreement end date drives expiry reminders.
+12
+Visa expiry drives reminders where applicable.
+13
+BGC/VOG status is separate from the document.
+14
+Document upload does not equal verification.
+15
+Restricted compliance documents require appropriate permission.
+16
+SNA No/Review creates configurable action.
+17
+Exit date causes inactive status unless authorised override.
+18
+Historical BAs remain available subject to retention policy.
+19
+Resolved alerts stop sending.
+20
+Threshold notifications are idempotent.
+21
+Email failures are logged.
+22
+Critical changes are audited.
+23
+Imports are previewed before commit.
+24
+Exports follow permissions.
+25
+Retention is policy-driven.
+26
+Settings are configurable by authorised administrators.
+27
+Critical workflows have automated tests.
+25. Developer Deliverables & Release Gate
+
+--- TABLE START ---
+Deliverable | Required
+UI/UX | Desktop/mobile wireframes, responsive layouts, status system.
+Database | ERD, migrations, constraints, indexes, seed data.
+Backend | Django apps, models, services, permissions, jobs.
+API | OpenAPI specification and endpoint docs.
+Automation | Trigger/rule engine, templates, logs.
+Reporting | Queries, filters, formulas, exports, chart specs.
+Security | Threat model, access matrix, secrets strategy, monitoring.
+GDPR | Retention matrix, export/delete/anonymisation workflow.
+Testing | Unit, integration, API, UI, security and workflow tests.
+Deployment | Docker, CI/CD, staging/prod, monitoring, backups.
+Documentation | Admin guide, user guide, technical runbook, data dictionary.
+--- TABLE END ---
+
+Deliverable
+Required
+UI/UX
+Desktop/mobile wireframes, responsive layouts, status system.
+Database
+ERD, migrations, constraints, indexes, seed data.
+Backend
+Django apps, models, services, permissions, jobs.
+API
+OpenAPI specification and endpoint docs.
+Automation
+Trigger/rule engine, templates, logs.
+Reporting
+Queries, filters, formulas, exports, chart specs.
+Security
+Threat model, access matrix, secrets strategy, monitoring.
+GDPR
+Retention matrix, export/delete/anonymisation workflow.
+Testing
+Unit, integration, API, UI, security and workflow tests.
+Deployment
+Docker, CI/CD, staging/prod, monitoring, backups.
+Documentation
+Admin guide, user guide, technical runbook, data dictionary.
+
+--- TABLE START ---
+Production release gate Do not launch until core BA/Client/Agreement workflows, permissions, audit, notification duplicate prevention, Excel import/export, backup/restore, sensitive-document controls and privacy/retention decisions have all been tested and signed off.
+--- TABLE END ---
+
+Production release gateDo not launch until core BA/Client/Agreement workflows, permissions, audit, notification duplicate prevention, Excel import/export, backup/restore, sensitive-document controls and privacy/retention decisions have all been tested and signed off.
+26. Reference Sources
+
+--- TABLE START ---
+Source | Official reference
+Mysolution — ATS & back-office | https://www.mysolution.com/welke-software-combineert-ats-en-backoffice
+Mysolution — Total Talent | https://www.mysolution.com/en/solutions/total-talent
+Bullhorn NL — ATS | https://www.bullhorn.com/nl/ats-software/
+Bullhorn NL — Recruitment automation | https://www.bullhorn.com/nl/recruitmentsoftware-kleine-bureaus/recruitment-automatisering/
+Carerix — GDPR workflow | https://help.carerix.com/en/articles/1801923-working-gdpr-compliant-in-carerix
+Carerix — Client portal | https://help.carerix.com/nl/articles/2058746-klantportaal
+NEN — NEN 4400-1:2023 | https://www.nen.nl/en/nen-4400-1-2023-nl-305720
+Autoriteit Persoonsgegevens — Retention | https://autoriteitpersoonsgegevens.nl/en/themes/basic-gdpr/privacy-and-personal-data/retention-of-personal-data
+--- TABLE END ---
+
+Source
+Official reference
+Mysolution — ATS & back-office
+https://www.mysolution.com/welke-software-combineert-ats-en-backoffice
+Mysolution — Total Talent
+https://www.mysolution.com/en/solutions/total-talent
+Bullhorn NL — ATS
+https://www.bullhorn.com/nl/ats-software/
+Bullhorn NL — Recruitment automation
+https://www.bullhorn.com/nl/recruitmentsoftware-kleine-bureaus/recruitment-automatisering/
+Carerix — GDPR workflow
+https://help.carerix.com/en/articles/1801923-working-gdpr-compliant-in-carerix
+Carerix — Client portal
+https://help.carerix.com/nl/articles/2058746-klantportaal
+NEN — NEN 4400-1:2023
+https://www.nen.nl/en/nen-4400-1-2023-nl-305720
+Autoriteit Persoonsgegevens — Retention
+https://autoriteitpersoonsgegevens.nl/en/themes/basic-gdpr/privacy-and-personal-data/retention-of-personal-data
+This is a product/engineering specification, not legal advice. Exact GDPR retention periods, VOG/BGC handling, employment/contract rules, immigration requirements and NEN evidence requirements must be confirmed with the organisation's Dutch legal/privacy/compliance advisers.
+27. Executive Build Summary
+
+--- TABLE START ---
+The product in one sentence A secure BA/consultant control tower that turns the existing Excel tracker into a system of record, preserves every agreement, calculates commercial values, tracks compliance and automatically tells the team what needs attention.
+--- TABLE END ---
+
+The product in one sentenceA secure BA/consultant control tower that turns the existing Excel tracker into a system of record, preserves every agreement, calculates commercial values, tracks compliance and automatically tells the team what needs attention.
+
+--- TABLE START ---
+Dashboard       → What needs attention? BAs             → Who are our people? Clients         → Who are they working for? Agreements      → What is current and what changed? Compliance      → Are they ready/compliant? Reports         → What does management need to know?
+--- TABLE END ---
+
+Dashboard       → What needs attention?
+BAs             → Who are our people?
+Clients         → Who are they working for?
+Agreements      → What is current and what changed?
+Compliance      → Are they ready/compliant?
+Reports         → What does management need to know?
+The most important architectural decision is to keep the user experience simple while making the underlying data model structured. The current spreadsheet's agreement columns should become unlimited agreement records. This is the key to clean reporting, extension history, auditability and future growth.
