@@ -234,6 +234,29 @@ class ComplianceRecord(models.Model):
         return f"Compliance - {self.associate.full_name} ({self.overall_status})"
 
 
+class AssociateDocument(models.Model):
+    DOC_TYPES = [
+        ('VOG', 'VOG Certificate'),
+        ('PASSPORT', 'Passport / National ID'),
+        ('AGREEMENT', 'Signed Agreement / SOW'),
+        ('VISA', 'Work Permit / HSM Visa'),
+        ('KVK', 'KVK Handelsregister Extract'),
+        ('SNA', 'SNA NEN 4400-1 Certificate'),
+        ('OTHER', 'Other Supporting Document'),
+    ]
+
+    associate = models.ForeignKey(Associate, on_delete=models.CASCADE, related_name='documents')
+    doc_type = models.CharField(max_length=50, choices=DOC_TYPES, default='OTHER')
+    title = models.CharField(max_length=255)
+    file_name = models.CharField(max_length=255, blank=True, default='')
+    file_url = models.URLField(max_length=1000, blank=True, null=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    verified = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.doc_type}: {self.title} ({self.associate.full_name})"
+
+
 class ActivityLog(models.Model):
     associate = models.ForeignKey(Associate, on_delete=models.CASCADE, related_name='activities', null=True, blank=True)
     action_type = models.CharField(max_length=100)
@@ -246,6 +269,7 @@ class ActivityLog(models.Model):
 
     def __str__(self):
         return f"[{self.created_at.strftime('%Y-%m-%d %H:%M')}] {self.action_type}: {self.description[:50]}"
+
 
 
 from django.contrib.auth.models import User

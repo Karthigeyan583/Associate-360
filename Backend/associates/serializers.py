@@ -104,12 +104,25 @@ class AssociateListSerializer(serializers.ModelSerializer):
         return None
 
 
+from .models import (
+    Associate, Client, Company, Assignment, 
+    Agreement, ComplianceRecord, ActivityLog, UserProfile, AssociateDocument
+)
+
+
+class AssociateDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AssociateDocument
+        fields = '__all__'
+
+
 class AssociateDetailSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(read_only=True)
     assignments = AssignmentSerializer(many=True, read_only=True)
     agreements = AgreementSerializer(many=True, read_only=True)
     compliance = ComplianceRecordSerializer(read_only=True)
     activities = ActivityLogSerializer(many=True, read_only=True)
+    documents = AssociateDocumentSerializer(many=True, read_only=True)
     current_agreement = serializers.SerializerMethodField()
 
     class Meta:
@@ -119,9 +132,10 @@ class AssociateDetailSerializer(serializers.ModelSerializer):
             'primary_role', 'employment_type', 'employment_status', 'readiness_status',
             'source', 'ba_company_name', 'passport_number', 'company_to_ba', 'company_to_client',
             'working_country', 'owner', 'joining_date', 'exit_date', 'exit_reason',
-            'assignments', 'agreements', 'current_agreement', 'compliance', 'activities',
+            'assignments', 'agreements', 'current_agreement', 'compliance', 'activities', 'documents',
             'created_at', 'updated_at'
         ]
+
 
 
 
