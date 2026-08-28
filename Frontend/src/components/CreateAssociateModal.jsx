@@ -118,7 +118,7 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
               <span>1. Associate Photo & Identification</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '74px 260px 1fr', gap: '24px', alignItems: 'center' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '74px 220px 1fr', gap: '20px', alignItems: 'center' }}>
               {/* Photo Avatar Preview */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
                 <img
@@ -152,18 +152,22 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
                 />
               </div>
 
-              {/* Identifier Format Info */}
-              <div style={{ background: 'var(--bg-elevated)', padding: '12px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  Unique Associate Identifier
-                </div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                  Standard 7-digit payroll ID or alphanumeric BA code used across agreement sequences.
-                </div>
+              {/* LinkedIn Profile URL */}
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Globe size={13} style={{ color: '#0a66c2' }} />
+                  <span>LinkedIn Profile URL</span>
+                </label>
+                <input
+                  type="url"
+                  value={formData.linkedin_url}
+                  onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
+                  placeholder="https://www.linkedin.com/in/..."
+                  className="form-input"
+                />
               </div>
             </div>
           </div>
-
 
           {/* Section 2: Consultant & Contracting Entity Details */}
           <div className="glass-card" style={{ padding: '20px' }}>
@@ -197,7 +201,6 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
                 />
               </div>
 
-
               <div className="form-group">
                 <label className="form-label">Email Address *</label>
                 <input
@@ -210,7 +213,6 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
                 />
               </div>
 
-
               <div className="form-group">
                 <label className="form-label">Phone Number</label>
                 <input
@@ -218,17 +220,6 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   placeholder="+31 6 7812 3456"
-                  className="form-input"
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">LinkedIn Profile URL</label>
-                <input
-                  type="url"
-                  value={formData.linkedin_url}
-                  onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
-                  placeholder="https://www.linkedin.com/in/..."
                   className="form-input"
                 />
               </div>
@@ -245,6 +236,7 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
                   <option value="SUBCONTRACTOR">Subcontractor</option>
                 </select>
               </div>
+
 
 
               <div className="form-group">
