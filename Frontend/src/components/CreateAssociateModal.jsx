@@ -118,7 +118,7 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
               <span>1. Associate Photo & Identification</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '74px 1fr', gap: '20px', alignItems: 'center' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '74px 260px 1fr', gap: '24px', alignItems: 'center' }}>
               {/* Photo Avatar Preview */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
                 <img
@@ -151,8 +151,19 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
                   style={{ fontFamily: 'monospace', fontWeight: 700, letterSpacing: '0.04em' }}
                 />
               </div>
+
+              {/* Identifier Format Info */}
+              <div style={{ background: 'var(--bg-elevated)', padding: '12px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  Unique Associate Identifier
+                </div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                  Standard 7-digit payroll ID or alphanumeric BA code used across agreement sequences.
+                </div>
+              </div>
             </div>
           </div>
+
 
           {/* Section 2: Consultant & Contracting Entity Details */}
           <div className="glass-card" style={{ padding: '20px' }}>
