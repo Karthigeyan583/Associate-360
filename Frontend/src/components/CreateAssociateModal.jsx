@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   X, User, Building, DollarSign, ShieldCheck, Check, 
-  Calendar, FileText, Globe, Key, Briefcase, Camera, ArrowRight
+  Calendar, FileText, Globe, Key, Briefcase, ArrowRight, Layers
 } from 'lucide-react';
 import { apiService } from '../services/api';
 
@@ -15,6 +15,7 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
     linkedin_url: '',
     photo_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     primary_role: 'Business Analyst',
+
     employment_type: 'PAYROLL',
     employment_status: 'ACTIVE',
     readiness_status: 'READY',
@@ -43,7 +44,6 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
     sna_status: 'VERIFIED'
   });
 
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -54,17 +54,6 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
   const baRateNum = parseFloat(formData.ba_rate) || 0;
   const rateDifference = (clientRateNum - baRateNum).toFixed(2);
   const marginPct = clientRateNum > 0 ? (((clientRateNum - baRateNum) / clientRateNum) * 100).toFixed(2) : '0.00';
-
-  const avatarPresets = [
-    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80'
-  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -106,7 +95,7 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
               Add Associate Profile & Placement (27-Field Master Record)
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem', margin: '4px 0 0' }}>
-              Complete consultant profile with photo, contracting companies, rates difference, 1st agreement dates & compliance.
+              Consultant profile with BA identification, contracting entities, rate difference spread, and compliance matrix.
             </p>
           </div>
           <button onClick={onClose} className="btn btn-secondary btn-icon" title="Close">
@@ -122,69 +111,14 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
             </div>
           )}
 
-          {/* Section 1: Photo & Identification */}
+          {/* Section 1: Consultant & Contracting Entity Details */}
           <div className="glass-card" style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', fontWeight: 700, color: 'var(--accent-primary)', marginBottom: '16px' }}>
-              <Camera size={16} />
-              <span>1. Associate Photo & Identification</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-info)', marginBottom: '16px' }}>
+              <User size={16} />
+              <span>1. Consultant & Contracting Entity Details</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '74px 1fr 190px', gap: '18px', alignItems: 'flex-start' }}>
-              {/* Photo Avatar */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', paddingTop: '2px' }}>
-                <img
-                  src={formData.photo_url || avatarPresets[0]}
-                  alt="BA Preview"
-                  style={{
-                    width: '64px',
-                    height: '64px',
-                    borderRadius: '50%',
-                    objectFit: 'cover',
-                    border: '2.5px solid var(--accent-primary)',
-                    boxShadow: '0 2px 8px rgba(79, 70, 229, 0.2)'
-                  }}
-                />
-                <span style={{ fontSize: '0.625rem', fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Portrait
-                </span>
-              </div>
-
-              {/* Photo URL & Quick Selector */}
-              <div className="form-group">
-                <label className="form-label">Photo Preset / Image URL</label>
-                <input
-                  type="url"
-                  value={formData.photo_url}
-                  onChange={(e) => setFormData({ ...formData, photo_url: e.target.value })}
-                  placeholder="https://images.unsplash.com/..."
-                  className="form-input"
-                />
-                <div style={{ display: 'flex', gap: '8px', marginTop: '8px', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 500 }}>Select Preset:</span>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    {avatarPresets.map((url, idx) => (
-                      <img
-                        key={idx}
-                        src={url}
-                        alt={`Avatar ${idx + 1}`}
-                        onClick={() => setFormData({ ...formData, photo_url: url })}
-                        style={{
-                          width: '24px',
-                          height: '24px',
-                          borderRadius: '50%',
-                          objectFit: 'cover',
-                          cursor: 'pointer',
-                          border: formData.photo_url === url ? '2px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
-                          transform: formData.photo_url === url ? 'scale(1.15)' : 'scale(1)',
-                          transition: 'transform 0.15s ease'
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* BA ID */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px 16px' }}>
               <div className="form-group">
                 <label className="form-label">BA ID *</label>
                 <input
@@ -197,17 +131,7 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
                   style={{ fontFamily: 'monospace', fontWeight: 700, letterSpacing: '0.04em' }}
                 />
               </div>
-            </div>
-          </div>
 
-          {/* Section 2: Consultant & Contracting Entity Details */}
-          <div className="glass-card" style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-info)', marginBottom: '16px' }}>
-              <User size={16} />
-              <span>2. Consultant & Contracting Entity Details</span>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px 16px' }}>
               <div className="form-group">
                 <label className="form-label">First Name *</label>
                 <input
@@ -243,6 +167,7 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
                   className="form-input"
                 />
               </div>
+
 
               <div className="form-group">
                 <label className="form-label">Phone Number</label>

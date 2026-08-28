@@ -91,7 +91,7 @@ export default function Associate360Drawer({ associate, onClose, onRefreshData }
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
             
-            {/* BA Photo & Title */}
+            {/* BA Profile Photo & Title */}
             <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
               <div style={{ position: 'relative' }}>
                 {associate.photo_url ? (
@@ -103,8 +103,9 @@ export default function Associate360Drawer({ associate, onClose, onRefreshData }
                       height: '64px',
                       borderRadius: '50%',
                       objectFit: 'cover',
-                      border: '2px solid var(--accent-primary)',
-                      boxShadow: '0 4px 12px rgba(79, 70, 229, 0.2)'
+                      border: '2.5px solid var(--accent-primary)',
+                      boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)',
+                      flexShrink: 0
                     }}
                   />
                 ) : (
@@ -112,13 +113,14 @@ export default function Associate360Drawer({ associate, onClose, onRefreshData }
                     width: '64px',
                     height: '64px',
                     borderRadius: '50%',
-                    background: 'var(--accent-primary-light)',
+                    background: 'linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontSize: '1.35rem',
                     fontWeight: 800,
-                    color: 'var(--accent-primary)'
+                    color: '#ffffff',
+                    flexShrink: 0
                   }}>
                     {associate.first_name?.[0]}{associate.last_name?.[0]}
                   </div>
@@ -129,11 +131,13 @@ export default function Associate360Drawer({ associate, onClose, onRefreshData }
                 />
               </div>
 
+
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
                     {associate.full_name}
                   </h2>
+
                   <span style={{ fontSize: '0.8125rem', fontFamily: 'monospace', color: 'var(--accent-primary)', background: 'var(--accent-primary-light)', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
                     {associate.ba_id}
                   </span>
