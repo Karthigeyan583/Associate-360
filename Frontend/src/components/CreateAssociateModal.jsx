@@ -12,6 +12,7 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
     last_name: '',
     email: '',
     phone: '',
+    linkedin_url: '',
     photo_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     primary_role: 'Business Analyst',
     employment_type: 'PAYROLL',
@@ -41,6 +42,7 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
     visa_status: 'VALID_SPONSOR',
     sna_status: 'VERIFIED'
   });
+
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -243,6 +245,28 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
               </div>
 
               <div className="form-group">
+                <label className="form-label">Phone Number</label>
+                <input
+                  type="text"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="+31 6 7812 3456"
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">LinkedIn Profile URL</label>
+                <input
+                  type="url"
+                  value={formData.linkedin_url}
+                  onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
+                  placeholder="https://www.linkedin.com/in/..."
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
                 <label className="form-label">Employment Type *</label>
                 <select
                   value={formData.employment_type}
@@ -254,6 +278,7 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
                   <option value="SUBCONTRACTOR">Subcontractor</option>
                 </select>
               </div>
+
 
               <div className="form-group">
                 <label className="form-label">Employment Status</label>

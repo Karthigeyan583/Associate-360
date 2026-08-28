@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { 
   Search, Filter, Plus, User, Building, Calendar, DollarSign, 
   CheckCircle, AlertTriangle, XCircle, LayoutGrid, List, ChevronRight,
-  TrendingUp, Clock, ShieldCheck, Briefcase
+  TrendingUp, Clock, ShieldCheck, Briefcase, Globe
 } from 'lucide-react';
+
 
 export default function AssociateDirectory({ 
   associates, 
@@ -227,7 +228,32 @@ export default function AssociateDirectory({
                           </div>
                         )}
                         <div>
-                          <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.9rem' }}>{assoc.full_name}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.9rem' }}>{assoc.full_name}</span>
+                            {assoc.linkedin_url && (
+                              <a
+                                href={assoc.linkedin_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                title="Open LinkedIn Profile"
+                                style={{
+                                  color: '#0a66c2',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  background: 'rgba(10, 102, 194, 0.1)',
+                                  padding: '2px 5px',
+                                  borderRadius: '3px',
+                                  fontSize: '0.65rem',
+                                  fontWeight: 700,
+                                  textDecoration: 'none'
+                                }}
+                              >
+                                in
+                              </a>
+                            )}
+                          </div>
                           <div style={{ fontSize: '0.75rem', color: 'var(--accent-primary)', fontFamily: 'monospace', fontWeight: 700 }}>
                             {assoc.ba_id} • <span style={{ color: 'var(--text-muted)' }}>{assoc.employment_type}</span>
                           </div>
@@ -239,6 +265,7 @@ export default function AssociateDirectory({
                         </div>
                       </div>
                     </td>
+
 
                     {/* Contracting Entities */}
                     <td>

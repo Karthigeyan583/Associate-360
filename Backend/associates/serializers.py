@@ -68,7 +68,7 @@ class AssociateListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Associate
         fields = [
-            'id', 'ba_id', 'first_name', 'last_name', 'full_name', 'email', 'phone', 'photo_url',
+            'id', 'ba_id', 'first_name', 'last_name', 'full_name', 'email', 'phone', 'photo_url', 'linkedin_url',
             'primary_role', 'employment_type', 'employment_status', 'readiness_status',
             'source', 'ba_company_name', 'passport_number', 'company_to_ba', 'company_to_client',
             'working_country', 'owner', 'joining_date', 'exit_date', 'exit_reason',
@@ -115,13 +115,14 @@ class AssociateDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Associate
         fields = [
-            'id', 'ba_id', 'first_name', 'last_name', 'full_name', 'email', 'phone', 'photo_url',
+            'id', 'ba_id', 'first_name', 'last_name', 'full_name', 'email', 'phone', 'photo_url', 'linkedin_url',
             'primary_role', 'employment_type', 'employment_status', 'readiness_status',
             'source', 'ba_company_name', 'passport_number', 'company_to_ba', 'company_to_client',
             'working_country', 'owner', 'joining_date', 'exit_date', 'exit_reason',
             'assignments', 'agreements', 'current_agreement', 'compliance', 'activities',
             'created_at', 'updated_at'
         ]
+
 
 
     def get_current_agreement(self, obj):

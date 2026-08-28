@@ -429,7 +429,9 @@ class Command(BaseCommand):
                     'email': a['email'],
                     'phone': a['phone'],
                     'photo_url': a['photo_url'],
+                    'linkedin_url': a.get('linkedin_url', f"https://www.linkedin.com/in/{a['first_name'].lower()}-{a['last_name'].lower().replace(' ', '-')}/"),
                     'primary_role': a['primary_role'],
+
                     'employment_type': a['employment_type'],
                     'employment_status': a['employment_status'],
                     'readiness_status': a['readiness_status'],

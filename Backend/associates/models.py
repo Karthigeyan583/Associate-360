@@ -58,8 +58,10 @@ class Associate(models.Model):
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=50, blank=True)
     photo_url = models.URLField(blank=True, null=True)
+    linkedin_url = models.URLField(max_length=500, blank=True, null=True)
     
     primary_role = models.CharField(max_length=200, default='Business Analyst')
+
     employment_type = models.CharField(max_length=30, choices=EMPLOYMENT_TYPES, default='PAYROLL')
     employment_status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='ACTIVE')
     readiness_status = models.CharField(max_length=30, choices=READINESS_CHOICES, default='READY')

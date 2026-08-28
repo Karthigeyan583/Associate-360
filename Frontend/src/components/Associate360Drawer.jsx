@@ -160,13 +160,38 @@ export default function Associate360Drawer({ associate, onClose, onRefreshData }
           </div>
 
           {/* Quick Contact & Metadata Bar */}
-          <div style={{ display: 'flex', gap: '18px', flexWrap: 'wrap', fontSize: '0.78125rem', color: 'var(--text-secondary)', padding: '8px 12px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center', fontSize: '0.78125rem', color: 'var(--text-secondary)', padding: '8px 12px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <Mail size={13} style={{ color: 'var(--text-muted)' }} /> {associate.email}
             </span>
             <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <Phone size={13} style={{ color: 'var(--text-muted)' }} /> {associate.phone || '+31 6 1234 5678'}
             </span>
+            
+            {associate.linkedin_url && (
+              <a
+                href={associate.linkedin_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  color: '#0a66c2',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  background: 'rgba(10, 102, 194, 0.1)',
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  border: '1px solid rgba(10, 102, 194, 0.25)'
+                }}
+              >
+                <Globe size={12} />
+                <span>LinkedIn Profile</span>
+                <ArrowRight size={11} />
+              </a>
+            )}
+
             <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <MapPin size={13} style={{ color: 'var(--text-muted)' }} /> {associate.working_country || 'Netherlands'}
             </span>
@@ -174,6 +199,7 @@ export default function Associate360Drawer({ associate, onClose, onRefreshData }
               <User size={13} style={{ color: 'var(--text-muted)' }} /> Owner: <strong>{associate.owner || 'Operations Team'}</strong>
             </span>
           </div>
+
 
           {/* Tabs Bar */}
           <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
