@@ -236,6 +236,7 @@ class ComplianceRecord(models.Model):
 
 class AssociateDocument(models.Model):
     DOC_TYPES = [
+        ('RESUME', 'Consultant Resume / CV'),
         ('VOG', 'VOG Certificate'),
         ('PASSPORT', 'Passport / National ID'),
         ('AGREEMENT', 'Signed Agreement / SOW'),
@@ -244,6 +245,7 @@ class AssociateDocument(models.Model):
         ('SNA', 'SNA NEN 4400-1 Certificate'),
         ('OTHER', 'Other Supporting Document'),
     ]
+
 
     associate = models.ForeignKey(Associate, on_delete=models.CASCADE, related_name='documents')
     doc_type = models.CharField(max_length=50, choices=DOC_TYPES, default='OTHER')

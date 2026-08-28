@@ -49,12 +49,13 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
   });
 
   const [attachedDocs, setAttachedDocs] = useState([
-    { id: '1', doc_type: 'PASSPORT', title: 'Passport / National ID (Front & Back Copy)', file_name: '', file_size: '', status: 'PENDING', is_required: true },
-    { id: '2', doc_type: 'VOG', title: 'VOG Dutch Certificate of Conduct (Verklaring Omtrent het Gedrag)', file_name: '', file_size: '', status: 'PENDING', is_required: true },
-    { id: '3', doc_type: 'AGREEMENT', title: 'Signed Framework Agreement / SOW Contract Document', file_name: '', file_size: '', status: 'PENDING', is_required: true },
-    { id: '4', doc_type: 'VISA', title: 'Work Permit / HSM Knowledge Migrant Visa Approval', file_name: '', file_size: '', status: 'PENDING', is_required: false },
-    { id: '5', doc_type: 'KVK', title: 'KVK Trade Register Extract & BTW VAT Number', file_name: '', file_size: '', status: 'PENDING', is_required: false },
-    { id: '6', doc_type: 'SNA', title: 'SNA NEN 4400-1 Labour Compliance Audit Certificate', file_name: '', file_size: '', status: 'PENDING', is_required: false },
+    { id: '1', doc_type: 'RESUME', title: 'Consultant Resume / Curriculum Vitae (CV) (PDF / DOCX)', file_name: '', file_size: '', status: 'PENDING', is_required: true },
+    { id: '2', doc_type: 'PASSPORT', title: 'Passport / National ID (Front & Back Copy)', file_name: '', file_size: '', status: 'PENDING', is_required: true },
+    { id: '3', doc_type: 'VOG', title: 'VOG Dutch Certificate of Conduct (Verklaring Omtrent het Gedrag)', file_name: '', file_size: '', status: 'PENDING', is_required: true },
+    { id: '4', doc_type: 'AGREEMENT', title: 'Signed Framework Agreement / SOW Contract Document', file_name: '', file_size: '', status: 'PENDING', is_required: true },
+    { id: '5', doc_type: 'VISA', title: 'Work Permit / HSM Knowledge Migrant Visa Approval', file_name: '', file_size: '', status: 'PENDING', is_required: false },
+    { id: '6', doc_type: 'KVK', title: 'KVK Trade Register Extract & BTW VAT Number', file_name: '', file_size: '', status: 'PENDING', is_required: false },
+    { id: '7', doc_type: 'SNA', title: 'SNA NEN 4400-1 Labour Compliance Audit Certificate', file_name: '', file_size: '', status: 'PENDING', is_required: false },
   ]);
 
   const [customDocTitle, setCustomDocTitle] = useState('');
@@ -115,6 +116,21 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
       return doc;
     }).filter(doc => !doc.id.startsWith('custom-') || doc.status === 'ATTACHED'));
   };
+
+  const handleProceedToDocuments = (e) => {
+    e.preventDefault();
+    if (!formData.first_name || !formData.last_name || !formData.email || !formData.phone || !formData.linkedin_url) {
+      setError('Please fill in all mandatory consultant contact details (First Name, Last Name, Email, Phone, LinkedIn).');
+      return;
+    }
+    if (!formData.client_id) {
+      setError('Please select a Client Organization in Section 3.');
+      return;
+    }
+    setError(null);
+    setActiveModalTab('documents');
+  };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1001,18 +1017,28 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
             borderTop: '1px solid var(--border-subtle)',
             paddingTop: '16px'
           }}>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {activeModalTab === 'details' ? (
+            {activeModalTab === 'details' ? (
+              <>
                 <button
                   type="button"
-                  onClick={() => setActiveModalTab('documents')}
+                  onClick={onClose}
+                  disabled={loading}
                   className="btn btn-secondary"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 >
-                  <Paperclip size={14} />
-                  <span>Attach Documents ({attachedCount}/{attachedDocs.length}) →</span>
+                  Cancel
                 </button>
-              ) : (
+                <button
+                  type="button"
+                  onClick={handleProceedToDocuments}
+                  className="btn btn-primary"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <span>Save & Proceed to Documents</span>
+                  <ArrowRight size={16} />
+                </button>
+              </>
+            ) : (
+              <>
                 <button
                   type="button"
                   onClick={() => setActiveModalTab('details')}
@@ -1021,37 +1047,39 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
                 >
                   <span>← Back to Associate Details</span>
                 </button>
-              )}
-            </div>
 
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={loading}
-                className="btn btn-secondary"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn btn-primary"
-              >
-                {loading ? (
-                  <>
-                    <div className="pulse-dot online" style={{ width: '8px', height: '8px' }} />
-                    <span>Saving Associate...</span>
-                  </>
-                ) : (
-                  <>
-                    <Check size={16} />
-                    <span>Save Associate 360° Profile</span>
-                  </>
-                )}
-              </button>
-            </div>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    disabled={loading}
+                    className="btn btn-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="btn btn-primary"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    {loading ? (
+                      <>
+                        <div className="pulse-dot online" style={{ width: '8px', height: '8px' }} />
+                        <span>Saving Associate...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Check size={16} />
+                        <span>Save Associate 360° Profile</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
+
         </form>
       </div>
     </div>
