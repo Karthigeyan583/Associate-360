@@ -56,9 +56,12 @@ class Associate(models.Model):
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
     email = models.EmailField(unique=True)
+    secondary_email = models.EmailField(blank=True, null=True)
     phone = models.CharField(max_length=50, blank=True)
+    secondary_phone = models.CharField(max_length=50, blank=True, null=True)
     photo_url = models.URLField(blank=True, null=True)
     linkedin_url = models.URLField(max_length=500, blank=True, null=True)
+
     
     primary_role = models.CharField(max_length=200, default='Business Analyst')
 

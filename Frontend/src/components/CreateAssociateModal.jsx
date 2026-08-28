@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   X, User, Building, DollarSign, ShieldCheck, Check, 
-  Calendar, FileText, Globe, Key, Briefcase, Camera, ArrowRight, Layers
+  Calendar, FileText, Globe, Key, Briefcase, Camera, ArrowRight, Layers, Plus, Trash2
 } from 'lucide-react';
 import { apiService } from '../services/api';
 
@@ -11,7 +11,9 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
     first_name: '',
     last_name: '',
     email: '',
+    secondary_email: '',
     phone: '',
+    secondary_phone: '',
     linkedin_url: '',
     photo_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     primary_role: 'Business Analyst',
@@ -43,7 +45,8 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
     sna_status: 'VERIFIED'
   });
 
-
+  const [showSecondaryEmail, setShowSecondaryEmail] = useState(false);
+  const [showSecondaryPhone, setShowSecondaryPhone] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -75,7 +78,7 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
     <div className="modal-overlay" onClick={onClose}>
       <div 
         className="modal-content" 
-        style={{ maxWidth: '860px', maxHeight: '92vh', overflowY: 'auto' }} 
+        style={{ maxWidth: '880px', maxHeight: '92vh', overflowY: 'auto' }} 
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -95,7 +98,7 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
               Add Associate Profile & Placement (27-Field Master Record)
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem', margin: '4px 0 0' }}>
-              Consultant profile with BA identification, contracting entities, rate difference spread, and compliance matrix.
+              All fields are mandatory. Complete consultant profile, contracting entities, rate difference, and separate BGC/VOG compliance.
             </p>
           </div>
           <button onClick={onClose} className="btn btn-secondary btn-icon" title="Close">
@@ -156,10 +159,11 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Globe size={13} style={{ color: '#0a66c2' }} />
-                  <span>LinkedIn Profile URL</span>
+                  <span>LinkedIn Profile URL *</span>
                 </label>
                 <input
                   type="url"
+                  required
                   value={formData.linkedin_url}
                   onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
                   placeholder="https://www.linkedin.com/in/..."
@@ -201,8 +205,32 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
                 />
               </div>
 
+              {/* Primary Email with + Add Alternate Email */}
               <div className="form-group">
-                <label className="form-label">Email Address *</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label className="form-label">Email Address *</label>
+                  {!showSecondaryEmail && (
+                    <button
+                      type="button"
+                      onClick={() => setShowSecondaryEmail(true)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--accent-primary)',
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '2px',
+                        padding: 0
+                      }}
+                    >
+                      <Plus size={12} />
+                      <span>Email</span>
+                    </button>
+                  )}
+                </div>
                 <input
                   type="email"
                   required
@@ -213,10 +241,71 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
                 />
               </div>
 
+              {/* Secondary Email (Shown when toggled with +) */}
+              {showSecondaryEmail && (
+                <div className="form-group">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label className="form-label">Secondary Email Address *</label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowSecondaryEmail(false);
+                        setFormData({ ...formData, secondary_email: '' });
+                      }}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--color-danger)',
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        padding: 0
+                      }}
+                      title="Remove Secondary Email"
+                    >
+                      ✕ Remove
+                    </button>
+                  </div>
+                  <input
+                    type="email"
+                    required
+                    value={formData.secondary_email}
+                    onChange={(e) => setFormData({ ...formData, secondary_email: e.target.value })}
+                    placeholder="alternate.email@domain.com"
+                    className="form-input"
+                  />
+                </div>
+              )}
+
+              {/* Primary Phone with + Add Alternate Phone */}
               <div className="form-group">
-                <label className="form-label">Phone Number</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label className="form-label">Phone Number *</label>
+                  {!showSecondaryPhone && (
+                    <button
+                      type="button"
+                      onClick={() => setShowSecondaryPhone(true)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--accent-primary)',
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '2px',
+                        padding: 0
+                      }}
+                    >
+                      <Plus size={12} />
+                      <span>Phone</span>
+                    </button>
+                  )}
+                </div>
                 <input
                   type="text"
+                  required
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   placeholder="+31 6 7812 3456"
@@ -224,9 +313,46 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
                 />
               </div>
 
+              {/* Secondary Phone (Shown when toggled with +) */}
+              {showSecondaryPhone && (
+                <div className="form-group">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label className="form-label">Secondary Phone *</label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowSecondaryPhone(false);
+                        setFormData({ ...formData, secondary_phone: '' });
+                      }}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--color-danger)',
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        padding: 0
+                      }}
+                      title="Remove Secondary Phone"
+                    >
+                      ✕ Remove
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    value={formData.secondary_phone}
+                    onChange={(e) => setFormData({ ...formData, secondary_phone: e.target.value })}
+                    placeholder="+31 6 9876 5432"
+                    className="form-input"
+                  />
+                </div>
+              )}
+
               <div className="form-group">
                 <label className="form-label">Employment Type *</label>
                 <select
+                  required
                   value={formData.employment_type}
                   onChange={(e) => setFormData({ ...formData, employment_type: e.target.value })}
                   className="form-select"
@@ -237,11 +363,10 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
                 </select>
               </div>
 
-
-
               <div className="form-group">
-                <label className="form-label">Employment Status</label>
+                <label className="form-label">Employment Status *</label>
                 <select
+                  required
                   value={formData.employment_status}
                   onChange={(e) => setFormData({ ...formData, employment_status: e.target.value })}
                   className="form-select"
@@ -253,9 +378,10 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
               </div>
 
               <div className="form-group">
-                <label className="form-label">Source (Supplier / Channel)</label>
+                <label className="form-label">Source (Supplier / Channel) *</label>
                 <input
                   type="text"
+                  required
                   value={formData.source}
                   onChange={(e) => setFormData({ ...formData, source: e.target.value })}
                   placeholder="e.g. STARIDE, Direct, Referral"
@@ -264,9 +390,10 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
               </div>
 
               <div className="form-group">
-                <label className="form-label">BA Company Name</label>
+                <label className="form-label">BA Company Name *</label>
                 <input
                   type="text"
+                  required
                   value={formData.ba_company_name}
                   onChange={(e) => setFormData({ ...formData, ba_company_name: e.target.value })}
                   placeholder="e.g. DV LINX B.V."
@@ -275,9 +402,10 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
               </div>
 
               <div className="form-group">
-                <label className="form-label">Passport Number</label>
+                <label className="form-label">Passport Number *</label>
                 <input
                   type="text"
+                  required
                   value={formData.passport_number}
                   onChange={(e) => setFormData({ ...formData, passport_number: e.target.value })}
                   placeholder="e.g. M7841029"
@@ -286,9 +414,10 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
               </div>
 
               <div className="form-group">
-                <label className="form-label">Working from Country</label>
+                <label className="form-label">Working from Country *</label>
                 <input
                   type="text"
+                  required
                   value={formData.working_country}
                   onChange={(e) => setFormData({ ...formData, working_country: e.target.value })}
                   placeholder="e.g. Netherlands"
@@ -297,9 +426,10 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
               </div>
 
               <div className="form-group">
-                <label className="form-label">Company to BA</label>
+                <label className="form-label">Company to BA *</label>
                 <input
                   type="text"
+                  required
                   value={formData.company_to_ba}
                   onChange={(e) => setFormData({ ...formData, company_to_ba: e.target.value })}
                   placeholder="e.g. SAGEUS Ltd"
@@ -308,9 +438,10 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
               </div>
 
               <div className="form-group">
-                <label className="form-label">Company to Client</label>
+                <label className="form-label">Company to Client *</label>
                 <input
                   type="text"
+                  required
                   value={formData.company_to_client}
                   onChange={(e) => setFormData({ ...formData, company_to_client: e.target.value })}
                   placeholder="e.g. STARIDE"
@@ -319,9 +450,10 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
               </div>
 
               <div className="form-group">
-                <label className="form-label">Joining Date</label>
+                <label className="form-label">Joining Date *</label>
                 <input
                   type="date"
+                  required
                   value={formData.joining_date}
                   onChange={(e) => setFormData({ ...formData, joining_date: e.target.value })}
                   className="form-input"
@@ -341,11 +473,12 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
               <div className="form-group" style={{ gridColumn: 'span 2' }}>
                 <label className="form-label">Client Organization *</label>
                 <select
+                  required
                   value={formData.client_id}
                   onChange={(e) => setFormData({ ...formData, client_id: e.target.value })}
                   className="form-select"
                 >
-                  <option value="">Select Client Account</option>
+                  <option value="">Select Client Account *</option>
                   {clients.map(c => (
                     <option key={c.id} value={c.id}>{c.name} ({c.code})</option>
                   ))}
@@ -353,9 +486,10 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
               </div>
 
               <div className="form-group">
-                <label className="form-label">Primary Role Title</label>
+                <label className="form-label">Primary Role Title *</label>
                 <input
                   type="text"
+                  required
                   value={formData.primary_role}
                   onChange={(e) => setFormData({ ...formData, primary_role: e.target.value })}
                   placeholder="e.g. Business Analyst"
@@ -364,9 +498,10 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
               </div>
 
               <div className="form-group">
-                <label className="form-label">1st Agreement Start Date</label>
+                <label className="form-label">1st Agreement Start Date *</label>
                 <input
                   type="date"
+                  required
                   value={formData.start_date}
                   onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
                   className="form-input"
@@ -374,9 +509,10 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
               </div>
 
               <div className="form-group">
-                <label className="form-label">1st Agreement End Date</label>
+                <label className="form-label">1st Agreement End Date *</label>
                 <input
                   type="date"
+                  required
                   value={formData.end_date}
                   onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
                   className="form-input"
@@ -384,9 +520,10 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
               </div>
 
               <div className="form-group">
-                <label className="form-label">Account Lead Owner</label>
+                <label className="form-label">Account Lead Owner *</label>
                 <input
                   type="text"
+                  required
                   value={formData.owner}
                   onChange={(e) => setFormData({ ...formData, owner: e.target.value })}
                   className="form-input"
@@ -442,32 +579,49 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
             </div>
           </div>
 
-          {/* Section 4: Compliance & Screening Checks */}
+          {/* Section 4: Dutch Compliance & Screening Checklist (BGC & VOG Separate) */}
           <div className="glass-card" style={{ padding: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-warning)', marginBottom: '16px' }}>
               <ShieldCheck size={16} />
-              <span>4. BGC, VOG, VISA & SNA Compliance Checks</span>
+              <span>4. Dutch Compliance & Screening Checklist (BGC & VOG Separate)</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px 16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px 16px' }}>
+              {/* Separate Field 1: BGC Status */}
               <div className="form-group">
-                <label className="form-label">BGC & VOG Status</label>
+                <label className="form-label">BGC Status (Background Check) *</label>
                 <select
-                  value={formData.vog_status}
-                  onChange={(e) => {
-                    setFormData({ ...formData, vog_status: e.target.value, bgc_status: e.target.value });
-                  }}
+                  required
+                  value={formData.bgc_status}
+                  onChange={(e) => setFormData({ ...formData, bgc_status: e.target.value })}
                   className="form-select"
                 >
-                  <option value="COMPLETED">Completed</option>
+                  <option value="COMPLETED">Completed & Verified</option>
                   <option value="PENDING">In Progress / Pending</option>
                   <option value="NOT_REQUIRED">Not Applicable</option>
                 </select>
               </div>
 
+              {/* Separate Field 2: VOG Status */}
               <div className="form-group">
-                <label className="form-label">VISA Type</label>
+                <label className="form-label">VOG Status (Certificate of Conduct) *</label>
                 <select
+                  required
+                  value={formData.vog_status}
+                  onChange={(e) => setFormData({ ...formData, vog_status: e.target.value })}
+                  className="form-select"
+                >
+                  <option value="COMPLETED">Valid & Verified</option>
+                  <option value="PENDING">Application Submitted / Pending</option>
+                  <option value="NOT_REQUIRED">Not Applicable</option>
+                </select>
+              </div>
+
+              {/* Field 3: VISA Type */}
+              <div className="form-group">
+                <label className="form-label">VISA Type *</label>
+                <select
+                  required
                   value={formData.visa_status}
                   onChange={(e) => setFormData({ ...formData, visa_status: e.target.value })}
                   className="form-select"
@@ -479,22 +633,26 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
                 </select>
               </div>
 
+              {/* Field 4: SNA Standard */}
               <div className="form-group">
-                <label className="form-label">SNA Compliant (NEN 4400-1)</label>
+                <label className="form-label">SNA Compliant (NEN 4400-1) *</label>
                 <select
+                  required
                   value={formData.sna_status}
                   onChange={(e) => setFormData({ ...formData, sna_status: e.target.value })}
                   className="form-select"
                 >
-                  <option value="VERIFIED">Yes / Verified</option>
-                  <option value="PENDING">No / Pending</option>
+                  <option value="VERIFIED">Yes / Verified (NEN 4400-1)</option>
+                  <option value="PENDING">No / Pending Audit</option>
                   <option value="EXEMPT">Exempt</option>
                 </select>
               </div>
 
+              {/* Field 5: Initial Readiness */}
               <div className="form-group">
-                <label className="form-label">Initial Readiness</label>
+                <label className="form-label">Initial Placement Readiness *</label>
                 <select
+                  required
                   value={formData.readiness_status}
                   onChange={(e) => setFormData({ ...formData, readiness_status: e.target.value })}
                   className="form-select"
@@ -546,3 +704,4 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
     </div>
   );
 }
+

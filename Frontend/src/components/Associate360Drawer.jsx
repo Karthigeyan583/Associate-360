@@ -167,10 +167,13 @@ export default function Associate360Drawer({ associate, onClose, onRefreshData }
           <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center', fontSize: '0.78125rem', color: 'var(--text-secondary)', padding: '8px 12px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <Mail size={13} style={{ color: 'var(--text-muted)' }} /> {associate.email}
+              {associate.secondary_email && <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>({associate.secondary_email})</span>}
             </span>
             <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <Phone size={13} style={{ color: 'var(--text-muted)' }} /> {associate.phone || '+31 6 1234 5678'}
+              {associate.secondary_phone && <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>({associate.secondary_phone})</span>}
             </span>
+
             
             {associate.linkedin_url && (
               <a
