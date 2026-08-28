@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   X, User, Building, DollarSign, ShieldCheck, Check, 
-  Calendar, FileText, Globe, Key, Briefcase, ArrowRight, Layers
+  Calendar, FileText, Globe, Key, Briefcase, Camera, ArrowRight, Layers
 } from 'lucide-react';
 import { apiService } from '../services/api';
 
@@ -15,7 +15,6 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
     linkedin_url: '',
     photo_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     primary_role: 'Business Analyst',
-
     employment_type: 'PAYROLL',
     employment_status: 'ACTIVE',
     readiness_status: 'READY',
@@ -43,6 +42,7 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
     visa_status: 'VALID_SPONSOR',
     sna_status: 'VERIFIED'
   });
+
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -111,27 +111,57 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
             </div>
           )}
 
-          {/* Section 1: Consultant & Contracting Entity Details */}
+          {/* Section 1: Associate Photo & Identification */}
           <div className="glass-card" style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-info)', marginBottom: '16px' }}>
-              <User size={16} />
-              <span>1. Consultant & Contracting Entity Details</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', fontWeight: 700, color: 'var(--accent-primary)', marginBottom: '16px' }}>
+              <Camera size={16} />
+              <span>1. Associate Photo & Identification</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px 16px' }}>
-              <div className="form-group">
+            <div style={{ display: 'grid', gridTemplateColumns: '74px 1fr', gap: '20px', alignItems: 'center' }}>
+              {/* Photo Avatar Preview */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                <img
+                  src={formData.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
+                  alt="BA Portrait Preview"
+                  style={{
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: '2.5px solid var(--accent-primary)',
+                    boxShadow: '0 2px 8px rgba(79, 70, 229, 0.25)'
+                  }}
+                />
+                <span style={{ fontSize: '0.625rem', fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Portrait
+                </span>
+              </div>
+
+              {/* BA ID */}
+              <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">BA ID *</label>
                 <input
                   type="text"
                   required
                   value={formData.ba_id}
                   onChange={(e) => setFormData({ ...formData, ba_id: e.target.value })}
-                  placeholder="e.g. 2002896"
+                  placeholder="e.g. 2002896 or BA-6378"
                   className="form-input"
                   style={{ fontFamily: 'monospace', fontWeight: 700, letterSpacing: '0.04em' }}
                 />
               </div>
+            </div>
+          </div>
 
+          {/* Section 2: Consultant & Contracting Entity Details */}
+          <div className="glass-card" style={{ padding: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-info)', marginBottom: '16px' }}>
+              <User size={16} />
+              <span>2. Consultant & Contracting Entity Details</span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px 16px' }}>
               <div className="form-group">
                 <label className="form-label">First Name *</label>
                 <input
@@ -155,6 +185,7 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
                   className="form-input"
                 />
               </div>
+
 
               <div className="form-group">
                 <label className="form-label">Email Address *</label>
