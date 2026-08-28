@@ -520,6 +520,46 @@ class AgreementViewSet(viewsets.ModelViewSet):
     queryset = Agreement.objects.all().select_related('associate', 'client').order_by('-start_date')
     serializer_class = AgreementSerializer
 
+    @action(detail=True, methods=['post'], url_path='revise-rate')
+    def revise_rate(self, request, pk=None):
+        agreement = self.get_object()
+        revised_client_rate = request.data.get('revised_client_rate')
+        revised_ba_rate = request.data.get('revised_ba_rate')
+        effective_date = request.data.get('rate_revision_effective_date')
+        reason = request.data.get('rate_revision_reason', 'Annual rate revision / Performance increase')
+        actor = request.user.username if request.user.is_authenticated else (request.data.get('revised_by') or 'Admin')
+
+        old_client_rate = agreement.client_rate
+        old_ba_rate = agreement.ba_rate
+
+        if revised_client_rate:
+            agreement.client_rate = Decimal(str(revised_client_rate))
+            agreement.revised_client_rate = Decimal(str(revised_client_rate))
+        if revised_ba_rate:
+            agreement.ba_rate = Decimal(str(revised_ba_rate))
+            agreement.revised_ba_rate = Decimal(str(revised_ba_rate))
+
+        if old_client_rate and agreement.client_rate:
+            increase_pct = ((agreement.client_rate - old_client_rate) / old_client_rate) * Decimal('100.00')
+            agreement.rate_increase_percentage = round(increase_pct, 2)
+
+        agreement.has_rate_revision = True
+        agreement.rate_revision_effective_date = effective_date or timezone.now().date()
+        agreement.rate_revision_reason = reason
+        agreement.revised_by = actor
+        agreement.save()
+
+        # Audit Log
+        ActivityLog.objects.create(
+            associate=agreement.associate,
+            action_type='RATE_REVISED',
+            description=f"Rate Revised by Admin ({actor}): Client Rate €{old_client_rate} → €{agreement.client_rate}/h, BA Rate €{old_ba_rate} → €{agreement.ba_rate}/h effective {agreement.rate_revision_effective_date}. Reason: {reason}",
+            actor=actor
+        )
+
+        return Response(AgreementSerializer(agreement).data)
+
+
 
 class ComplianceViewSet(viewsets.ModelViewSet):
     queryset = ComplianceRecord.objects.all().select_related('associate')

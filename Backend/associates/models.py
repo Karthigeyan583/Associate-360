@@ -76,7 +76,7 @@ class Associate(models.Model):
     company_to_client = models.CharField(max_length=255, blank=True, default='STARIDE')
     working_country = models.CharField(max_length=100, default='Netherlands')
     owner = models.CharField(max_length=150, default='Operations Team')
-    
+    end_client = models.CharField(max_length=255, blank=True, default='', help_text="End Client Enterprise (e.g. ASML, ING, Philips)")
     joining_date = models.DateField(default=timezone.now)
     exit_date = models.DateField(null=True, blank=True)
     exit_reason = models.TextField(blank=True, null=True)
@@ -102,6 +102,8 @@ class Assignment(models.Model):
     company = models.ForeignKey(Company, on_delete=models.SET_NULL, null=True, blank=True, related_name='assignments')
     role_title = models.CharField(max_length=200)
     department = models.CharField(max_length=150, blank=True, null=True)
+    end_client_name = models.CharField(max_length=255, blank=True, default='')
+    end_client_project = models.CharField(max_length=255, blank=True, default='')
     is_current = models.BooleanField(default=True)
     start_date = models.DateField(default=timezone.now)
     end_date = models.DateField(null=True, blank=True)
@@ -138,7 +140,10 @@ class Agreement(models.Model):
     associate = models.ForeignKey(Associate, on_delete=models.CASCADE, related_name='agreements')
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='agreements')
     agreement_number = models.CharField(max_length=100)
-    sequence = models.PositiveIntegerField(default=1)
+    sequence = models.PositiveIntegerField(default=1, help_text="Agreement sequence 1 to 10")
+    
+    end_client_name = models.CharField(max_length=255, blank=True, default='', help_text="End Client Enterprise (e.g. ASML, ING)")
+    end_client_project = models.CharField(max_length=255, blank=True, default='', help_text="Project or Program Name")
     
     start_date = models.DateField()
     end_date = models.DateField()
@@ -147,6 +152,15 @@ class Agreement(models.Model):
     ba_rate = models.DecimalField(max_digits=10, decimal_places=2, help_text="Pay rate paid to associate/consultant")
     currency = models.CharField(max_length=10, default='EUR')
     rate_unit = models.CharField(max_length=20, choices=RATE_UNITS, default='HOURLY')
+    
+    # Rate Revision & Increase Options (Admin Role)
+    has_rate_revision = models.BooleanField(default=False)
+    revised_client_rate = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    revised_ba_rate = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    rate_increase_percentage = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    rate_revision_effective_date = models.DateField(null=True, blank=True)
+    rate_revision_reason = models.TextField(blank=True, default='')
+    revised_by = models.CharField(max_length=150, blank=True, default='')
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ACTIVE')
     extension_status = models.CharField(max_length=30, choices=EXTENSION_CHOICES, default='NOT_STARTED')

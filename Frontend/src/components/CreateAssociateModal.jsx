@@ -30,16 +30,14 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
     company_to_client: 'STARIDE',
     working_country: 'Netherlands',
     owner: 'Operations Team',
+    end_client_name: 'ASML Netherlands B.V.',
+    end_client_project: 'EUV Core Automation & Delivery',
     joining_date: new Date().toISOString().split('T')[0],
     exit_date: '',
     exit_reason: '',
     
-    // Initial / 1st Agreement
+    // Initial Client Placement
     client_id: '',
-    start_date: new Date().toISOString().split('T')[0],
-    end_date: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    client_rate: '105.00',
-    ba_rate: '95.00',
     
     // Compliance
     vog_status: 'COMPLETED',
@@ -47,6 +45,24 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
     visa_status: 'VALID_SPONSOR',
     sna_status: 'VERIFIED'
   });
+
+  // Dynamic Agreement Sequences (Up to 10 sequences)
+  const [agreementSequences, setAgreementSequences] = useState([
+    {
+      sequence: 1,
+      title: '1st Initial Agreement',
+      start_date: new Date().toISOString().split('T')[0],
+      end_date: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      client_rate: '105.00',
+      ba_rate: '95.00',
+      has_rate_revision: false,
+      revised_client_rate: '',
+      revised_ba_rate: '',
+      rate_revision_effective_date: '',
+      rate_revision_reason: '',
+      status: 'ACTIVE'
+    }
+  ]);
 
   const [attachedDocs, setAttachedDocs] = useState([
     { id: '1', doc_type: 'RESUME', title: 'Consultant Resume / Curriculum Vitae (CV) (PDF / DOCX)', file_name: '', file_size: '', status: 'PENDING', is_required: true },
@@ -66,11 +82,44 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
 
   if (!isOpen) return null;
 
-  // Real-time calculated rate difference & margin
-  const clientRateNum = parseFloat(formData.client_rate) || 0;
-  const baRateNum = parseFloat(formData.ba_rate) || 0;
-  const rateDifference = (clientRateNum - baRateNum).toFixed(2);
-  const marginPct = clientRateNum > 0 ? (((clientRateNum - baRateNum) / clientRateNum) * 100).toFixed(2) : '0.00';
+  const handleAddAgreementSequence = () => {
+    if (agreementSequences.length >= 10) return;
+    const nextSeq = agreementSequences.length + 1;
+    const lastSeq = agreementSequences[agreementSequences.length - 1];
+    const lastEndDate = lastSeq?.end_date ? new Date(lastSeq.end_date) : new Date();
+    const nextStartDate = new Date(lastEndDate.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const nextEndDate = new Date(lastEndDate.getTime() + 181 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    setAgreementSequences([
+      ...agreementSequences,
+      {
+        sequence: nextSeq,
+        title: `${nextSeq === 2 ? '2nd' : nextSeq === 3 ? '3rd' : `${nextSeq}th`} Extension Sequence`,
+        start_date: nextStartDate,
+        end_date: nextEndDate,
+        client_rate: lastSeq?.client_rate || '105.00',
+        ba_rate: lastSeq?.ba_rate || '95.00',
+        has_rate_revision: false,
+        revised_client_rate: '',
+        revised_ba_rate: '',
+        rate_revision_effective_date: '',
+        rate_revision_reason: '',
+        status: 'UPCOMING'
+      }
+    ]);
+  };
+
+  const handleRemoveAgreementSequence = (index) => {
+    if (agreementSequences.length <= 1) return;
+    setAgreementSequences(agreementSequences.filter((_, i) => i !== index));
+  };
+
+  const handleUpdateSequence = (index, field, value) => {
+    const updated = [...agreementSequences];
+    updated[index][field] = value;
+    setAgreementSequences(updated);
+  };
+
 
   const handleSimulateFileUpload = (docId, e) => {
     const file = e.target.files?.[0];
@@ -138,7 +187,16 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
     setError(null);
 
     try {
-      await apiService.createAssociate(formData);
+      const payload = {
+        ...formData,
+        start_date: agreementSequences[0]?.start_date,
+        end_date: agreementSequences[0]?.end_date,
+        client_rate: agreementSequences[0]?.client_rate,
+        ba_rate: agreementSequences[0]?.ba_rate,
+        agreements: agreementSequences,
+        documents: attachedDocs.filter(d => d.status === 'ATTACHED')
+      };
+      await apiService.createAssociate(payload);
       onCreated();
       onClose();
     } catch (err) {
@@ -147,6 +205,7 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
       setLoading(false);
     }
   };
+
 
   const attachedCount = attachedDocs.filter(d => d.status === 'ATTACHED').length;
 
@@ -612,16 +671,22 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
                 </div>
               </div>
 
-              {/* Section 3: Client Placement, Rates & Difference Spread */}
+              {/* Section 3: Client Placement, End Client & Agreement Sequences (Up to 10) */}
               <div className="glass-card" style={{ padding: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-success)', marginBottom: '16px' }}>
-                  <DollarSign size={16} />
-                  <span>3. Client Placement, Rates & Difference Spread</span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-success)' }}>
+                    <DollarSign size={16} />
+                    <span>3. Client Placement, End Client & Agreement Sequences (Up to 10)</span>
+                  </div>
+                  <span className="badge badge-info" style={{ fontSize: '0.72rem' }}>
+                    {agreementSequences.length} of 10 Sequences Configured
+                  </span>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px 16px' }}>
-                  <div className="form-group" style={{ gridColumn: 'span 2' }}>
-                    <label className="form-label">Client Organization *</label>
+                {/* Client & End Client Header Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px 16px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid var(--border-subtle)' }}>
+                  <div className="form-group">
+                    <label className="form-label">Client Organization (Prime) *</label>
                     <select
                       required
                       value={formData.client_id}
@@ -648,28 +713,6 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">1st Agreement Start Date *</label>
-                    <input
-                      type="date"
-                      required
-                      value={formData.start_date}
-                      onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                      className="form-input"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">1st Agreement End Date *</label>
-                    <input
-                      type="date"
-                      required
-                      value={formData.end_date}
-                      onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                      className="form-input"
-                    />
-                  </div>
-
-                  <div className="form-group">
                     <label className="form-label">Account Lead Owner *</label>
                     <input
                       type="text"
@@ -681,53 +724,262 @@ export default function CreateAssociateModal({ isOpen, onClose, clients = [], on
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Client Rate (€/h) *</label>
+                    <label className="form-label">End Client Organization / Enterprise *</label>
                     <input
-                      type="number"
-                      step="0.01"
+                      type="text"
                       required
-                      value={formData.client_rate}
-                      onChange={(e) => setFormData({ ...formData, client_rate: e.target.value })}
-                      placeholder="105.00"
+                      value={formData.end_client_name}
+                      onChange={(e) => setFormData({ ...formData, end_client_name: e.target.value })}
+                      placeholder="e.g. ASML Netherlands B.V., ING Bank, Philips"
                       className="form-input"
                     />
                   </div>
 
-                  <div className="form-group">
-                    <label className="form-label">BA Pay Rate (€/h) *</label>
+                  <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                    <label className="form-label">End Client Project / Program *</label>
                     <input
-                      type="number"
-                      step="0.01"
+                      type="text"
                       required
-                      value={formData.ba_rate}
-                      onChange={(e) => setFormData({ ...formData, ba_rate: e.target.value })}
-                      placeholder="95.00"
+                      value={formData.end_client_project}
+                      onChange={(e) => setFormData({ ...formData, end_client_project: e.target.value })}
+                      placeholder="e.g. Core EUV Platform Modernization & Payment Gateway"
                       className="form-input"
                     />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Rate Difference Spread</label>
-                    <div style={{
-                      height: '40px',
-                      padding: '0 12px',
-                      borderRadius: 'var(--radius-md)',
-                      background: 'var(--bg-elevated)',
-                      border: '1px solid var(--border-medium)',
-                      fontWeight: 800,
-                      color: 'var(--color-success)',
-                      fontSize: '0.86rem',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      boxSizing: 'border-box'
-                    }}>
-                      <span>€{rateDifference}/h</span>
-                      <span className="badge badge-ready">{marginPct}% Margin</span>
-                    </div>
                   </div>
                 </div>
+
+                {/* Agreement Sequences List (1 to 10) */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {agreementSequences.map((seq, idx) => {
+                    const cRate = parseFloat(seq.client_rate) || 0;
+                    const bRate = parseFloat(seq.ba_rate) || 0;
+                    const diff = (cRate - bRate).toFixed(2);
+                    const margin = cRate > 0 ? (((cRate - bRate) / cRate) * 100).toFixed(2) : '0.00';
+
+                    return (
+                      <div
+                        key={idx}
+                        style={{
+                          background: 'var(--bg-elevated)',
+                          border: '1px solid var(--border-medium)',
+                          borderRadius: 'var(--radius-md)',
+                          padding: '16px 18px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '14px'
+                        }}
+                      >
+                        {/* Sequence Header */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span className="badge badge-info" style={{ fontWeight: 800 }}>
+                              #{seq.sequence}
+                            </span>
+                            <span style={{ fontWeight: 700, fontSize: '0.86rem', color: 'var(--text-primary)' }}>
+                              {seq.title}
+                            </span>
+                          </div>
+
+                          {idx > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveAgreementSequence(idx)}
+                              style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: 'var(--color-danger)',
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}
+                            >
+                              <Trash2 size={13} />
+                              <span>Remove Sequence #{seq.sequence}</span>
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Sequence Dates and Rates Grid */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px 14px' }}>
+                          <div className="form-group">
+                            <label className="form-label">Agreement Start Date *</label>
+                            <input
+                              type="date"
+                              required
+                              value={seq.start_date}
+                              onChange={(e) => handleUpdateSequence(idx, 'start_date', e.target.value)}
+                              className="form-input"
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label className="form-label">Agreement End Date *</label>
+                            <input
+                              type="date"
+                              required
+                              value={seq.end_date}
+                              onChange={(e) => handleUpdateSequence(idx, 'end_date', e.target.value)}
+                              className="form-input"
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label className="form-label">Calculated Margin Spread</label>
+                            <div style={{
+                              height: '40px',
+                              padding: '0 12px',
+                              borderRadius: 'var(--radius-md)',
+                              background: 'var(--bg-card)',
+                              border: '1px solid var(--border-medium)',
+                              fontWeight: 800,
+                              color: 'var(--color-success)',
+                              fontSize: '0.84rem',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              boxSizing: 'border-box'
+                            }}>
+                              <span>€{diff}/h</span>
+                              <span className="badge badge-ready">{margin}% Margin</span>
+                            </div>
+                          </div>
+
+                          <div className="form-group">
+                            <label className="form-label">Client Bill Rate (€/h) *</label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              required
+                              value={seq.client_rate}
+                              onChange={(e) => handleUpdateSequence(idx, 'client_rate', e.target.value)}
+                              placeholder="105.00"
+                              className="form-input"
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label className="form-label">BA Pay Rate (€/h) *</label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              required
+                              value={seq.ba_rate}
+                              onChange={(e) => handleUpdateSequence(idx, 'ba_rate', e.target.value)}
+                              placeholder="95.00"
+                              className="form-input"
+                            />
+                          </div>
+
+                          <div className="form-group" style={{ display: 'flex', alignItems: 'center', paddingTop: '24px' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                              <input
+                                type="checkbox"
+                                checked={seq.has_rate_revision}
+                                onChange={(e) => handleUpdateSequence(idx, 'has_rate_revision', e.target.checked)}
+                                style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)', cursor: 'pointer' }}
+                              />
+                              <span>Rate Increase / Revised Rate (Admin)</span>
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Rate Increase & Revised Rate Sub-card (Admin Option) */}
+                        {seq.has_rate_revision && (
+                          <div style={{
+                            background: 'rgba(79, 70, 229, 0.05)',
+                            border: '1px dashed rgba(79, 70, 229, 0.35)',
+                            borderRadius: 'var(--radius-md)',
+                            padding: '14px 16px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '12px'
+                          }}>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span>📈 Admin Rate Increase & Revision Controls</span>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                              <div className="form-group">
+                                <label className="form-label">Revised Client Rate (€/h) *</label>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  required
+                                  value={seq.revised_client_rate}
+                                  onChange={(e) => handleUpdateSequence(idx, 'revised_client_rate', e.target.value)}
+                                  placeholder="e.g. 115.00"
+                                  className="form-input"
+                                />
+                              </div>
+
+                              <div className="form-group">
+                                <label className="form-label">Revised BA Pay Rate (€/h) *</label>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  required
+                                  value={seq.revised_ba_rate}
+                                  onChange={(e) => handleUpdateSequence(idx, 'revised_ba_rate', e.target.value)}
+                                  placeholder="e.g. 102.00"
+                                  className="form-input"
+                                />
+                              </div>
+
+                              <div className="form-group">
+                                <label className="form-label">Date of Revised Rate *</label>
+                                <input
+                                  type="date"
+                                  required
+                                  value={seq.rate_revision_effective_date}
+                                  onChange={(e) => handleUpdateSequence(idx, 'rate_revision_effective_date', e.target.value)}
+                                  className="form-input"
+                                />
+                              </div>
+
+                              <div className="form-group" style={{ gridColumn: 'span 3' }}>
+                                <label className="form-label">Revision Reason / Admin Audit Log Notes *</label>
+                                <input
+                                  type="text"
+                                  required
+                                  value={seq.rate_revision_reason}
+                                  onChange={(e) => handleUpdateSequence(idx, 'rate_revision_reason', e.target.value)}
+                                  placeholder="e.g. Annual client billing escalation and seniority grade advancement"
+                                  className="form-input"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {/* Add Sequence Button (Up to 10) */}
+                  {agreementSequences.length < 10 && (
+                    <button
+                      type="button"
+                      onClick={handleAddAgreementSequence}
+                      className="btn btn-secondary"
+                      style={{
+                        padding: '10px 16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        borderStyle: 'dashed',
+                        fontWeight: 700
+                      }}
+                    >
+                      <Plus size={15} />
+                      <span>+ Add Next Agreement / Extension Sequence (Currently {agreementSequences.length}/10)</span>
+                    </button>
+                  )}
+                </div>
               </div>
+
 
               {/* Section 4: Dutch Compliance & Screening Checklist (BGC & VOG Separate) */}
               <div className="glass-card" style={{ padding: '20px' }}>

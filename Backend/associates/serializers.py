@@ -35,8 +35,10 @@ class AgreementSerializer(serializers.ModelSerializer):
         model = Agreement
         fields = [
             'id', 'agreement_id', 'associate', 'associate_name', 'client', 'client_name',
-            'agreement_number', 'sequence', 'start_date', 'end_date',
-            'client_rate', 'ba_rate', 'currency', 'rate_unit',
+            'agreement_number', 'sequence', 'end_client_name', 'end_client_project',
+            'start_date', 'end_date', 'client_rate', 'ba_rate', 'currency', 'rate_unit',
+            'has_rate_revision', 'revised_client_rate', 'revised_ba_rate',
+            'rate_increase_percentage', 'rate_revision_effective_date', 'rate_revision_reason', 'revised_by',
             'status', 'extension_status', 'document_url',
             'difference', 'margin_percentage', 'days_remaining',
             'created_at', 'updated_at'
@@ -71,7 +73,7 @@ class AssociateListSerializer(serializers.ModelSerializer):
             'id', 'ba_id', 'first_name', 'last_name', 'full_name', 'email', 'secondary_email', 'phone', 'secondary_phone', 'photo_url', 'linkedin_url',
             'primary_role', 'employment_type', 'employment_status', 'readiness_status',
             'source', 'ba_company_name', 'passport_number', 'company_to_ba', 'company_to_client',
-            'working_country', 'owner', 'joining_date', 'exit_date', 'exit_reason',
+            'working_country', 'owner', 'end_client', 'joining_date', 'exit_date', 'exit_reason',
             'current_client', 'current_agreement', 'compliance_status', 'created_at', 'updated_at'
         ]
 
@@ -81,7 +83,8 @@ class AssociateListSerializer(serializers.ModelSerializer):
             return {
                 'id': assignment.client.id,
                 'name': assignment.client.name,
-                'role_title': assignment.role_title
+                'role_title': assignment.role_title,
+                'end_client_name': assignment.end_client_name
             }
         return None
 
@@ -91,6 +94,8 @@ class AssociateListSerializer(serializers.ModelSerializer):
             return {
                 'id': agreement.id,
                 'agreement_number': agreement.agreement_number,
+                'sequence': agreement.sequence,
+                'end_client_name': agreement.end_client_name,
                 'start_date': agreement.start_date,
                 'end_date': agreement.end_date,
                 'client_rate': agreement.client_rate,
@@ -98,16 +103,14 @@ class AssociateListSerializer(serializers.ModelSerializer):
                 'difference': agreement.difference,
                 'margin_percentage': agreement.margin_percentage,
                 'days_remaining': agreement.days_remaining,
+                'has_rate_revision': agreement.has_rate_revision,
+                'revised_client_rate': agreement.revised_client_rate,
+                'revised_ba_rate': agreement.revised_ba_rate,
+                'rate_revision_effective_date': agreement.rate_revision_effective_date,
                 'status': agreement.status,
                 'extension_status': agreement.extension_status
             }
         return None
-
-
-from .models import (
-    Associate, Client, Company, Assignment, 
-    Agreement, ComplianceRecord, ActivityLog, UserProfile, AssociateDocument
-)
 
 
 class AssociateDocumentSerializer(serializers.ModelSerializer):
@@ -131,10 +134,11 @@ class AssociateDetailSerializer(serializers.ModelSerializer):
             'id', 'ba_id', 'first_name', 'last_name', 'full_name', 'email', 'secondary_email', 'phone', 'secondary_phone', 'photo_url', 'linkedin_url',
             'primary_role', 'employment_type', 'employment_status', 'readiness_status',
             'source', 'ba_company_name', 'passport_number', 'company_to_ba', 'company_to_client',
-            'working_country', 'owner', 'joining_date', 'exit_date', 'exit_reason',
+            'working_country', 'owner', 'end_client', 'joining_date', 'exit_date', 'exit_reason',
             'assignments', 'agreements', 'current_agreement', 'compliance', 'activities', 'documents',
             'created_at', 'updated_at'
         ]
+
 
 
 

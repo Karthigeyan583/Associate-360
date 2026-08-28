@@ -10,12 +10,24 @@ import { apiService } from '../services/api';
 export default function Associate360Drawer({ associate, onClose, onRefreshData }) {
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'agreements' | 'compliance' | 'activity'
   const [isExtending, setIsExtending] = useState(false);
+  const [revisingAgreementId, setRevisingAgreementId] = useState(null);
+  
   const [extensionForm, setExtensionForm] = useState({
     start_date: '',
     end_date: '',
     client_rate: '',
     ba_rate: '',
+    end_client_name: '',
+    end_client_project: ''
   });
+
+  const [rateRevisionForm, setRateRevisionForm] = useState({
+    revised_client_rate: '',
+    revised_ba_rate: '',
+    rate_revision_effective_date: '',
+    rate_revision_reason: '',
+  });
+
   const [loadingAction, setLoadingAction] = useState(false);
 
   if (!associate) return null;
@@ -32,6 +44,8 @@ export default function Associate360Drawer({ associate, onClose, onRefreshData }
         end_date: '',
         client_rate: currentAgreement.client_rate,
         ba_rate: currentAgreement.ba_rate,
+        end_client_name: associate.end_client || currentAgreement.end_client_name || '',
+        end_client_project: currentAgreement.end_client_project || ''
       });
     }
     setIsExtending(true);
@@ -46,6 +60,30 @@ export default function Associate360Drawer({ associate, onClose, onRefreshData }
       onRefreshData();
     } catch (err) {
       alert(`Failed to extend agreement: ${err.message}`);
+    } finally {
+      setLoadingAction(false);
+    }
+  };
+
+  const handleStartRateRevision = (agr) => {
+    setRevisingAgreementId(agr.id);
+    setRateRevisionForm({
+      revised_client_rate: agr.revised_client_rate || agr.client_rate,
+      revised_ba_rate: agr.revised_ba_rate || agr.ba_rate,
+      rate_revision_effective_date: agr.rate_revision_effective_date || new Date().toISOString().split('T')[0],
+      rate_revision_reason: agr.rate_revision_reason || 'Annual client billing escalation and rate revision'
+    });
+  };
+
+  const handleSubmitRateRevision = async (e, agreementId) => {
+    e.preventDefault();
+    setLoadingAction(true);
+    try {
+      await apiService.reviseAgreementRate(agreementId, rateRevisionForm);
+      setRevisingAgreementId(null);
+      onRefreshData();
+    } catch (err) {
+      alert(`Failed to revise rate: ${err.message}`);
     } finally {
       setLoadingAction(false);
     }
@@ -174,29 +212,22 @@ export default function Associate360Drawer({ associate, onClose, onRefreshData }
               {associate.secondary_phone && <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>({associate.secondary_phone})</span>}
             </span>
 
-            
             {associate.linkedin_url && (
               <a
                 href={associate.linkedin_url}
                 target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  color: '#0a66c2',
-                  fontWeight: 600,
-                  textDecoration: 'none',
-                  background: 'rgba(10, 102, 194, 0.1)',
-                  padding: '2px 8px',
-                  borderRadius: '4px',
-                  border: '1px solid rgba(10, 102, 194, 0.25)'
-                }}
+                rel="noreferrer"
+                style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#0077b5', textDecoration: 'none', fontWeight: 600 }}
               >
-                <Globe size={12} />
-                <span>LinkedIn Profile</span>
-                <ArrowRight size={11} />
+                <Globe size={13} />
+                <span>LinkedIn</span>
               </a>
+            )}
+
+            {associate.end_client && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--color-info)', fontWeight: 600 }}>
+                <Building size={13} /> End Client: <strong>{associate.end_client}</strong>
+              </span>
             )}
 
             <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -212,9 +243,9 @@ export default function Associate360Drawer({ associate, onClose, onRefreshData }
           <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
             {[
               { id: 'overview', label: '360° Master Record' },
-              { id: 'agreements', label: `Agreements Chain (${agreements.length || 1})` },
+              { id: 'agreements', label: `Agreements Chain (${agreements.length || 1}/10)` },
               { id: 'compliance', label: 'Compliance Matrix' },
-              { id: 'activity', label: 'Audit Trail' }
+              { id: 'activity', label: `Audit Trail (${activities.length})` }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -249,16 +280,23 @@ export default function Associate360Drawer({ associate, onClose, onRefreshData }
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Building size={16} style={{ color: 'var(--color-info)' }} />
-                    <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>Client Placement & Status</span>
+                    <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>Client & End Client Placement</span>
                   </div>
                   {getReadinessBadge(associate.readiness_status)}
                 </div>
 
                 <div style={{ background: 'var(--bg-elevated)', padding: '14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                   <div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Client Account</div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Prime Contracting Client</div>
                     <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem', marginTop: '2px' }}>
-                      {associate.current_client?.name || associate.assignments?.[0]?.client_name || 'KLM Royal Dutch Airlines'}
+                      {associate.current_client?.name || associate.assignments?.[0]?.client_name || 'STARIDE'}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>End Client Enterprise</div>
+                    <div style={{ fontWeight: 700, color: 'var(--color-info)', fontSize: '0.95rem', marginTop: '2px' }}>
+                      {associate.end_client || associate.assignments?.[0]?.end_client_name || 'ASML Netherlands B.V.'}
                     </div>
                   </div>
 
@@ -266,13 +304,6 @@ export default function Associate360Drawer({ associate, onClose, onRefreshData }
                     <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Project Role Title</div>
                     <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>
                       {associate.assignments?.[0]?.role_title || associate.primary_role}
-                    </div>
-                  </div>
-
-                  <div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Employment Status</div>
-                    <div style={{ fontWeight: 700, color: '#10b981', marginTop: '2px' }}>
-                      {associate.employment_status || 'ACTIVE'}
                     </div>
                   </div>
 
@@ -350,30 +381,33 @@ export default function Associate360Drawer({ associate, onClose, onRefreshData }
                     </span>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '14px' }}>
-                    <div style={{ background: 'var(--bg-elevated)', padding: '14px', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Client Rate (Bill)</div>
-                      <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-success)', marginTop: '4px' }}>
-                        €{currentAgreement.client_rate}/h
-                      </div>
-                    </div>
-
-                    <div style={{ background: 'var(--bg-elevated)', padding: '14px', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>BA Rate (Pay)</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
+                    <div style={{ padding: '16px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Client Bill Rate</div>
                       <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px' }}>
-                        €{currentAgreement.ba_rate}/h
+                        €{currentAgreement.client_rate}
+                        <span style={{ fontSize: '0.78125rem', fontWeight: 500, color: 'var(--text-muted)' }}>/hr</span>
                       </div>
                     </div>
 
-                    <div style={{ background: 'var(--bg-elevated)', padding: '14px', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Rate Difference</div>
-                      <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-info)', marginTop: '4px' }}>
-                        €{currentAgreement.difference}/h
+                    <div style={{ padding: '16px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>BA Pay Rate</div>
+                      <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px' }}>
+                        €{currentAgreement.ba_rate}
+                        <span style={{ fontSize: '0.78125rem', fontWeight: 500, color: 'var(--text-muted)' }}>/hr</span>
+                      </div>
+                    </div>
+
+                    <div style={{ padding: '16px', background: 'rgba(16, 185, 129, 0.08)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#10b981', textTransform: 'uppercase', fontWeight: 700 }}>Net Rate Spread</div>
+                      <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#10b981', marginTop: '4px' }}>
+                        €{currentAgreement.difference || (currentAgreement.client_rate - currentAgreement.ba_rate).toFixed(2)}
+                        <span style={{ fontSize: '0.78125rem', fontWeight: 500 }}>/hr</span>
                       </div>
                     </div>
                   </div>
 
-                  <div style={{ background: 'var(--bg-elevated)', padding: '12px 14px', borderRadius: 'var(--radius-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8125rem' }}>
+                  <div style={{ marginTop: '14px', background: 'var(--bg-elevated)', padding: '12px 14px', borderRadius: 'var(--radius-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8125rem' }}>
                     <div>
                       <span style={{ color: 'var(--text-muted)' }}>Current Agreement Validity: </span>
                       <strong>{currentAgreement.start_date}</strong> to <strong style={{ color: currentAgreement.days_remaining <= 14 ? 'var(--color-warning)' : 'var(--text-primary)' }}>{currentAgreement.end_date}</strong>
@@ -425,15 +459,15 @@ export default function Associate360Drawer({ associate, onClose, onRefreshData }
             <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 700 }}>Sequential Agreement History & Extensions</h3>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 700 }}>Agreement Sequences (Up to 10) & Rate Increase History</h3>
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    Track 1st, 2nd, 3rd, 4th, 5th, and 6th agreements with exact [From, To] dates and rate difference.
+                    Manage 1st, 2nd, 3rd up to 10th agreement extensions with rate revision edit option for Admin role.
                   </p>
                 </div>
-                {!isExtending && (
+                {!isExtending && agreements.length < 10 && (
                   <button onClick={handleStartExtension} className="btn btn-primary btn-sm">
                     <Plus size={14} />
-                    <span>Extend / Add Agreement</span>
+                    <span>+ Add Next Sequence ({agreements.length + 1}/10)</span>
                   </button>
                 )}
               </div>
@@ -442,7 +476,7 @@ export default function Associate360Drawer({ associate, onClose, onRefreshData }
               {isExtending && (
                 <form onSubmit={handleSubmitExtension} className="glass-card" style={{ padding: '20px', border: '1px solid var(--accent-primary)' }}>
                   <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--accent-primary)', marginBottom: '14px' }}>
-                    Create Sequential Extension Agreement
+                    Create Agreement Sequence #{agreements.length + 1}
                   </h4>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                     <div className="form-group">
@@ -493,82 +527,204 @@ export default function Associate360Drawer({ associate, onClose, onRefreshData }
                       Cancel
                     </button>
                     <button type="submit" disabled={loadingAction} className="btn btn-primary btn-sm">
-                      {loadingAction ? 'Extending...' : 'Confirm Extension'}
+                      {loadingAction ? 'Saving...' : 'Confirm Sequence'}
                     </button>
                   </div>
                 </form>
               )}
 
               {/* Sequential Agreements List */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {agreements.length === 0 ? (
                   <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)' }}>
                     No agreement records found.
                   </div>
                 ) : (
                   agreements.map((agr, idx) => {
-                    const ordinal = idx === 0 ? '1st' : idx === 1 ? '2nd' : idx === 2 ? '3rd' : `${idx + 1}th`;
+                    const seqNum = agr.sequence || (idx + 1);
+                    const ordinal = seqNum === 1 ? '1st' : seqNum === 2 ? '2nd' : seqNum === 3 ? '3rd' : `${seqNum}th`;
                     const isActive = agr.status === 'ACTIVE';
+                    const isRevisingThis = revisingAgreementId === agr.id;
 
                     return (
                       <div
                         key={agr.id || idx}
                         style={{
-                          padding: '16px 20px',
                           borderRadius: 'var(--radius-md)',
                           background: isActive ? 'var(--accent-primary-light)' : 'var(--bg-elevated)',
                           border: `1px solid ${isActive ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
+                          padding: '16px 20px',
                           display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: '16px'
+                          flexDirection: 'column',
+                          gap: '14px'
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                            <div style={{
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '8px',
+                              background: isActive ? 'var(--accent-primary)' : 'var(--bg-card)',
+                              color: isActive ? '#ffffff' : 'var(--text-secondary)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: 800,
+                              fontSize: '0.85rem'
+                            }}>
+                              #{seqNum}
+                            </div>
+
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+                                <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--text-primary)' }}>
+                                  {ordinal} Agreement Sequence ({agr.agreement_number || `AGR-0${seqNum}`})
+                                </span>
+                                <span className={`badge badge-${isActive ? 'ready' : 'neutral'}`} style={{ fontSize: '0.65rem' }}>
+                                  {agr.status || (isActive ? 'ACTIVE' : 'COMPLETED')}
+                                </span>
+                              </div>
+
+                              <div style={{ fontSize: '0.78125rem', color: 'var(--text-secondary)', display: 'flex', gap: '12px' }}>
+                                <span><strong>From:</strong> {agr.start_date}</span>
+                                <span><strong>To:</strong> {agr.end_date}</span>
+                                {agr.end_client_name && <span><strong>End Client:</strong> {agr.end_client_name}</span>}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Commercials, Margin & Rate Revision Action */}
+                          <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <div>
+                              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Rates Spread</div>
+                              <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                                Client: €{agr.client_rate}/h • BA: €{agr.ba_rate}/h
+                              </div>
+                              <div style={{ fontSize: '0.72rem', color: 'var(--color-success)', fontWeight: 600 }}>
+                                Diff: €{agr.difference || (agr.client_rate - agr.ba_rate).toFixed(2)}/h ({agr.margin_percentage || '9.52'}%)
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => isRevisingThis ? setRevisingAgreementId(null) : handleStartRateRevision(agr)}
+                              className="btn btn-secondary btn-sm"
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', fontWeight: 700 }}
+                            >
+                              <span>✏️ Revise Rate (Admin)</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Rate Revision Highlight if applied */}
+                        {agr.has_rate_revision && (
                           <div style={{
-                            width: '38px',
-                            height: '38px',
-                            borderRadius: '8px',
-                            background: isActive ? 'var(--accent-primary)' : 'var(--bg-card)',
-                            color: isActive ? '#ffffff' : 'var(--text-secondary)',
+                            background: 'rgba(79, 70, 229, 0.08)',
+                            border: '1px solid rgba(79, 70, 229, 0.2)',
+                            borderRadius: 'var(--radius-sm)',
+                            padding: '10px 14px',
+                            fontSize: '0.78125rem',
                             display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontWeight: 800,
-                            fontSize: '0.85rem'
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
                           }}>
-                            {ordinal}
+                            <div>
+                              <span style={{ fontWeight: 700, color: 'var(--accent-primary)' }}>📈 Rate Revised: </span>
+                              <span>Client €{agr.revised_client_rate}/h • BA €{agr.revised_ba_rate}/h</span>
+                              {agr.rate_revision_reason && <span style={{ color: 'var(--text-muted)', marginLeft: '8px' }}>({agr.rate_revision_reason})</span>}
+                            </div>
+                            <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>
+                              Effective: {agr.rate_revision_effective_date} (by {agr.revised_by || 'Admin'})
+                            </span>
                           </div>
+                        )}
 
-                          <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
-                              <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
-                                {ordinal} Agreement ({agr.agreement_number || `AGR-0${idx + 1}`})
-                              </span>
-                              <span className={`badge badge-${isActive ? 'ready' : 'neutral'}`} style={{ fontSize: '0.65rem' }}>
-                                {agr.status || (isActive ? 'ACTIVE' : 'COMPLETED')}
-                              </span>
+                        {/* Admin Inline Rate Revision Form */}
+                        {isRevisingThis && (
+                          <form
+                            onSubmit={(e) => handleSubmitRateRevision(e, agr.id)}
+                            style={{
+                              background: 'var(--bg-card)',
+                              border: '1px solid var(--accent-primary)',
+                              borderRadius: 'var(--radius-sm)',
+                              padding: '14px 16px',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '10px'
+                            }}
+                          >
+                            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent-primary)' }}>
+                              Admin Rate Revision for Sequence #{seqNum}
                             </div>
 
-                            <div style={{ fontSize: '0.78125rem', color: 'var(--text-secondary)', display: 'flex', gap: '12px' }}>
-                              <span><strong>From:</strong> {agr.start_date}</span>
-                              <span><strong>To:</strong> {agr.end_date}</span>
-                            </div>
-                          </div>
-                        </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                              <div className="form-group">
+                                <label className="form-label" style={{ fontSize: '0.72rem' }}>Revised Client Rate (€/h) *</label>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  required
+                                  value={rateRevisionForm.revised_client_rate}
+                                  onChange={(e) => setRateRevisionForm({ ...rateRevisionForm, revised_client_rate: e.target.value })}
+                                  className="form-input"
+                                />
+                              </div>
 
-                        {/* Commercials & Margin */}
-                        <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                          <div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Rates Spread</div>
-                            <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                              Client: €{agr.client_rate}/h • BA: €{agr.ba_rate}/h
+                              <div className="form-group">
+                                <label className="form-label" style={{ fontSize: '0.72rem' }}>Revised BA Rate (€/h) *</label>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  required
+                                  value={rateRevisionForm.revised_ba_rate}
+                                  onChange={(e) => setRateRevisionForm({ ...rateRevisionForm, revised_ba_rate: e.target.value })}
+                                  className="form-input"
+                                />
+                              </div>
+
+                              <div className="form-group">
+                                <label className="form-label" style={{ fontSize: '0.72rem' }}>Date of Revised Rate *</label>
+                                <input
+                                  type="date"
+                                  required
+                                  value={rateRevisionForm.rate_revision_effective_date}
+                                  onChange={(e) => setRateRevisionForm({ ...rateRevisionForm, rate_revision_effective_date: e.target.value })}
+                                  className="form-input"
+                                />
+                              </div>
+
+                              <div className="form-group" style={{ gridColumn: 'span 3' }}>
+                                <label className="form-label" style={{ fontSize: '0.72rem' }}>Revision Reason / Audit Notes *</label>
+                                <input
+                                  type="text"
+                                  required
+                                  value={rateRevisionForm.rate_revision_reason}
+                                  onChange={(e) => setRateRevisionForm({ ...rateRevisionForm, rate_revision_reason: e.target.value })}
+                                  placeholder="e.g. Annual client billing escalation and seniority grade advancement"
+                                  className="form-input"
+                                />
+                              </div>
                             </div>
-                            <div style={{ fontSize: '0.72rem', color: 'var(--color-success)', fontWeight: 600 }}>
-                              Diff: €{agr.difference || (agr.client_rate - agr.ba_rate).toFixed(2)}/h ({agr.margin_percentage || '9.52'}%)
+
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '4px' }}>
+                              <button
+                                type="button"
+                                onClick={() => setRevisingAgreementId(null)}
+                                className="btn btn-secondary btn-sm"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                type="submit"
+                                disabled={loadingAction}
+                                className="btn btn-primary btn-sm"
+                              >
+                                {loadingAction ? 'Saving Revision...' : 'Save & Log Rate Revision'}
+                              </button>
                             </div>
-                          </div>
-                        </div>
+                          </form>
+                        )}
                       </div>
                     );
                   })
@@ -618,23 +774,42 @@ export default function Associate360Drawer({ associate, onClose, onRefreshData }
           {/* ================= TAB 4: AUDIT TRAIL ================= */}
           {activeTab === 'activity' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <h3 style={{ fontSize: '1.05rem', fontWeight: 700 }}>Audit & Change Log</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 700 }}>Audit & Change Log</h3>
+                <span className="badge badge-info">{activities.length} Audit Entries</span>
+              </div>
+
               {activities.length === 0 ? (
                 <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)' }}>
                   No activity trail events recorded yet.
                 </div>
               ) : (
                 activities.map(act => (
-                  <div key={act.id} style={{ padding: '12px 14px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                  <div
+                    key={act.id}
+                    style={{
+                      padding: '12px 16px',
+                      background: 'var(--bg-elevated)',
+                      borderRadius: 'var(--radius-sm)',
+                      borderLeft: `3px solid ${act.action_type === 'RATE_REVISED' ? 'var(--accent-primary)' : act.action_type === 'AGREEMENT_EXTENDED' ? 'var(--color-success)' : 'var(--border-medium)'}`,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px'
+                    }}
+                  >
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem', fontWeight: 700 }}>
-                      <span>{act.action_type}</span>
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>{new Date(act.created_at).toLocaleString()}</span>
+                      <span style={{ color: act.action_type === 'RATE_REVISED' ? 'var(--accent-primary)' : 'var(--text-primary)' }}>
+                        {act.action_type === 'RATE_REVISED' ? '📈 Rate Revised' : act.action_type}
+                      </span>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>
+                        {new Date(act.created_at).toLocaleString()}
+                      </span>
                     </div>
-                    <div style={{ fontSize: '0.78125rem', color: 'var(--text-secondary)', marginTop: '3px' }}>
+                    <div style={{ fontSize: '0.78125rem', color: 'var(--text-secondary)' }}>
                       {act.description}
                     </div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                      Actor: {act.actor}
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                      Actor: <strong>{act.actor || 'Admin'}</strong>
                     </div>
                   </div>
                 ))

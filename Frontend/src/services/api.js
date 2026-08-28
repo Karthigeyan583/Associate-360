@@ -146,6 +146,12 @@ export const apiService = {
     return response.data;
   },
 
+  async reviseAgreementRate(agreementId, data) {
+    const response = await apiClient.post(`/agreements/${agreementId}/revise-rate/`, data);
+    return response.data;
+  },
+
+
   // Activity Logs
   async getActivities() {
     const response = await apiClient.get('/activities/');
