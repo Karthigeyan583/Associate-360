@@ -436,26 +436,43 @@ export default function ToolkitView() {
                   ))}
                 </div>
 
-                {/* Action Link Button */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid var(--border-subtle)', marginTop: 'auto' }}>
-                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
-                    {p.url.replace('https://', '').split('/')[0]}
-                  </span>
+                {/* Card Action Button & Domain */}
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                  paddingTop: '12px',
+                  borderTop: '1px solid var(--border-subtle)',
+                  marginTop: 'auto'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>Official Registry:</span>
+                    <span style={{ color: 'var(--text-secondary)', fontFamily: 'monospace', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {p.url.replace('https://', '').split('/')[0]}
+                    </span>
+                  </div>
 
                   <a
                     href={p.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="btn btn-secondary btn-sm"
+                    className="btn btn-secondary"
                     style={{
-                      gap: '6px',
+                      width: '100%',
+                      boxSizing: 'border-box',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
                       fontWeight: 700,
+                      fontSize: '0.8125rem',
                       color: p.color,
-                      borderColor: p.borderColor
+                      borderColor: p.borderColor,
+                      background: p.bgColor
                     }}
                   >
                     <span>{p.actionLabel}</span>
-                    <ExternalLink size={12} />
+                    <ExternalLink size={13} />
                   </a>
                 </div>
               </div>
@@ -463,6 +480,7 @@ export default function ToolkitView() {
           })}
         </div>
       </div>
+
 
     </div>
   );
