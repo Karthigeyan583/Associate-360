@@ -33,7 +33,7 @@ export default function ComplianceHub({ onSelectAssociate }) {
       
       {/* Header */}
       <div>
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>
+        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>
           Compliance & Legal Hub
         </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
@@ -105,9 +105,10 @@ export default function ComplianceHub({ onSelectAssociate }) {
             {filtered.map(r => (
               <tr key={r.id}>
                 <td>
-                  <div style={{ fontWeight: 700, color: '#fff' }}>{r.full_name}</div>
-                  <div style={{ fontSize: '0.75rem', color: '#818cf8', fontFamily: 'monospace' }}>{r.ba_id}</div>
+                  <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{r.full_name}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--accent-primary)', fontFamily: 'monospace', fontWeight: 700 }}>{r.ba_id}</div>
                 </td>
+
                 <td>
                   <div style={{ fontWeight: 600 }}>{r.current_client?.name || 'Unassigned'}</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{r.primary_role}</div>

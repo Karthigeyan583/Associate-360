@@ -61,13 +61,14 @@ export default function ApiDiagnosticsModal({ isOpen, onClose, initialHealth }) 
               <Code size={20} />
             </div>
             <div>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>
                 Django REST API Diagnostic Center
               </h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem' }}>
                 Live verification of REST endpoints, PostgreSQL connectivity, and response payloads.
               </p>
             </div>
+
           </div>
 
           <button onClick={onClose} className="btn btn-secondary btn-icon">

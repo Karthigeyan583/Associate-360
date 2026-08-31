@@ -80,23 +80,23 @@ export default function LoginPage() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#fff',
+              color: '#ffffff',
               boxShadow: '0 6px 20px rgba(99, 102, 241, 0.45)'
             }}>
               <Layers size={26} />
             </div>
             <div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
-                Associate <span style={{ color: '#6366f1' }}>360°</span>
+              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+                Associate <span style={{ color: 'var(--accent-primary)' }}>360°</span>
               </div>
-              <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
                 BA Control Tower Platform
               </div>
             </div>
           </div>
 
           <div>
-            <h1 style={{ fontSize: '2.1rem', fontWeight: 800, lineHeight: 1.2, color: '#fff', marginBottom: '12px' }}>
+            <h1 style={{ fontSize: '2.1rem', fontWeight: 800, lineHeight: 1.2, color: 'var(--text-primary)', marginBottom: '12px' }}>
               Operational control system for consulting & staffing.
             </h1>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.6 }}>
@@ -105,23 +105,23 @@ export default function LoginPage() {
           </div>
 
           {/* Value Badges */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.875rem', color: '#cbd5e1' }}>
-              <CheckCircle2 size={18} style={{ color: '#10b981' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+              <CheckCircle2 size={18} style={{ color: 'var(--color-success)', flexShrink: 0 }} />
               <span>Preserves agreement history without data loss</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.875rem', color: '#cbd5e1' }}>
-              <CheckCircle2 size={18} style={{ color: '#06b6d4' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+              <CheckCircle2 size={18} style={{ color: 'var(--color-info)', flexShrink: 0 }} />
               <span>Real-time commercial margin and rate spread calculations</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.875rem', color: '#cbd5e1' }}>
-              <CheckCircle2 size={18} style={{ color: '#818cf8' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+              <CheckCircle2 size={18} style={{ color: 'var(--accent-primary)', flexShrink: 0 }} />
               <span>Role-based access control with enterprise JWT tokens</span>
             </div>
           </div>
 
           <div style={{
-            background: 'rgba(255, 255, 255, 0.03)',
+            background: 'var(--bg-elevated)',
             border: '1px solid var(--border-subtle)',
             borderRadius: 'var(--radius-md)',
             padding: '14px 16px',
@@ -131,17 +131,17 @@ export default function LoginPage() {
           }}>
             <div className="pulse-dot online" />
             <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
-              Backend REST API active on <strong>PostgreSQL (Associate_DB)</strong>
+              Backend REST API active on <strong style={{ color: 'var(--text-primary)' }}>PostgreSQL (Associate_DB)</strong>
             </span>
           </div>
 
         </div>
 
         {/* Right Side: Login Card with 1-Click Persona Logins */}
-        <div className="glass-card" style={{ padding: '36px', border: '1px solid var(--border-medium)', boxShadow: '0 20px 50px rgba(0,0,0,0.6)' }}>
+        <div className="glass-card" style={{ padding: '36px', border: '1px solid var(--border-medium)', boxShadow: 'var(--shadow-lg)' }}>
           
           <div style={{ marginBottom: '24px' }}>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>
               Sign In to Control Tower
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem' }}>
@@ -151,9 +151,9 @@ export default function LoginPage() {
 
           {error && (
             <div style={{
-              background: 'rgba(244, 63, 94, 0.12)',
-              border: '1px solid rgba(244, 63, 94, 0.35)',
-              color: '#fb7185',
+              background: 'var(--color-danger-bg)',
+              border: '1px solid var(--color-danger-border)',
+              color: 'var(--color-danger)',
               padding: '12px 14px',
               borderRadius: '8px',
               marginBottom: '20px',
@@ -238,8 +238,8 @@ export default function LoginPage() {
                 onClick={() => handleDemoClick(persona)}
                 disabled={loading}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  border: `1px solid ${persona.roleKey === 'ADMIN' ? 'rgba(99, 102, 241, 0.35)' : 'var(--border-subtle)'}`,
+                  background: 'var(--bg-elevated)',
+                  border: `1px solid ${persona.roleKey === 'ADMIN' ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
                   borderRadius: 'var(--radius-md)',
                   padding: '10px 12px',
                   display: 'flex',
@@ -249,11 +249,11 @@ export default function LoginPage() {
                   textAlign: 'left',
                   transition: 'all var(--transition-fast)'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.07)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card-hover)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-elevated)'}
               >
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.8125rem', color: '#fff' }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.8125rem', color: 'var(--text-primary)' }}>
                     {persona.name}
                   </div>
                   <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
