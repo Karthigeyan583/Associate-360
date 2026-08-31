@@ -1,5 +1,9 @@
 from rest_framework import serializers
-from .models import Company, Client, Associate, Assignment, Agreement, ComplianceRecord, ActivityLog
+from django.contrib.auth.models import User
+from .models import (
+    Company, Client, Associate, Assignment, Agreement,
+    ComplianceRecord, ActivityLog, AssociateDocument, UserProfile
+)
 
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -151,10 +155,8 @@ class AssociateDetailSerializer(serializers.ModelSerializer):
         return None
 
 
-from django.contrib.auth.models import User
-from .models import UserProfile
-
 class UserProfileSerializer(serializers.ModelSerializer):
+
     role_display = serializers.CharField(source='get_role_display', read_only=True)
 
     class Meta:
