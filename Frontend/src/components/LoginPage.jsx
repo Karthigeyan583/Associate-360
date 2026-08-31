@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Layers, Lock, Mail, ArrowRight, Shield, UserCheck, AlertCircle, Eye, EyeOff, Sparkles, CheckCircle2, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import InteractiveMascot from './InteractiveMascot';
 
 export default function LoginPage() {
   const { login, loginWithDemo, loading, demoPersonas } = useAuth();
@@ -12,8 +11,6 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
   const [activeDemo, setActiveDemo] = useState(null);
-  const [isEmailFocused, setIsEmailFocused] = useState(false);
-  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,7 +32,6 @@ export default function LoginPage() {
     }
     setActiveDemo(null);
   };
-
 
   return (
     <div style={{
@@ -142,21 +138,10 @@ export default function LoginPage() {
         </div>
 
         {/* Right Side: Login Card with 1-Click Persona Logins */}
-        <div className="glass-card" style={{ padding: '28px 36px 32px', border: '1px solid var(--border-medium)', boxShadow: 'var(--shadow-lg)' }}>
+        <div className="glass-card" style={{ padding: '36px', border: '1px solid var(--border-medium)', boxShadow: 'var(--shadow-lg)' }}>
           
-          {/* Animated Mascot Character */}
-          <InteractiveMascot
-            isEmailFocused={isEmailFocused}
-            isPasswordFocused={isPasswordFocused}
-            showPassword={showPassword}
-            isLoading={loading}
-            isError={error !== null}
-            activePersona={activeDemo}
-            emailLength={identifier.length}
-          />
-
-          <div style={{ marginBottom: '20px', textAlign: 'center' }}>
-            <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>
+          <div style={{ marginBottom: '24px' }}>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>
               Sign In to Control Tower
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem' }}>
@@ -194,8 +179,6 @@ export default function LoginPage() {
                   required
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  onFocus={() => setIsEmailFocused(true)}
-                  onBlur={() => setIsEmailFocused(false)}
                   placeholder="name@associate360.io"
                   className="form-input"
                   style={{ paddingLeft: '38px' }}
@@ -212,8 +195,6 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  onFocus={() => setIsPasswordFocused(true)}
-                  onBlur={() => setIsPasswordFocused(false)}
                   placeholder="••••••••"
                   className="form-input"
                   style={{ paddingLeft: '38px', paddingRight: '38px' }}
@@ -238,7 +219,6 @@ export default function LoginPage() {
               <ArrowRight size={16} />
             </button>
           </form>
-
 
           {/* Divider */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '24px 0 16px' }}>
